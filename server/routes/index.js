@@ -57,7 +57,7 @@ router.post('/add', async function (req, res) {
 
     await index.upsert({
       namespace: userid,
-      vectors: [{id: uuid, values: embedding}],
+      vectors: [{id: uuid, values: embedding.data[0].embedding}],
     })
 
     res.status(200).json({message: 'success', documentId: uuid})
