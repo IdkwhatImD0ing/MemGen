@@ -1,3 +1,4 @@
+
 import { useUser } from "@auth0/nextjs-auth0/client"
 import Link from "next/link"
 import Image from "next/image"
@@ -6,19 +7,21 @@ import { Inter, Montserrat } from "next/font/google"
 import { useEffect, useState } from "react"
 import axios from "axios"
 
-const montserrat = Montserrat({ subsets: ['latin'] })
+
+const montserrat = Montserrat({ subsets: ["latin"] });
 
 export default function HomePage() {
-  const { user, error, isLoading } = useUser()
+  const { user, error, isLoading } = useUser();
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>{error.message}</div>;
 
   useEffect(() => {
     if (!user) {
-      window.location.href = "/api/auth/login"
+      window.location.href = "/api/auth/login";
     }
-  }, [user])
+  }, [user]);
+
 
   const [jobDescription, setJobDescription] = useState("")
 
@@ -44,10 +47,13 @@ export default function HomePage() {
                 className="text-white bg-slate-700 p-2 rounded-md w-[35%] overflow-visible outline-none" 
               />
             </form>
+
           </div>
+          <button className="bg-white text-black rounded-xl px-6 py-4 font-bold">
+            Generate
+          </button>
         </div>
       </div>
     );
   }
 }
-
