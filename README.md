@@ -1,0 +1,2 @@
+# MemGen
+Focused Memory GPT
