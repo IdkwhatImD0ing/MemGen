@@ -56,8 +56,6 @@ export default function InputDocuments() {
                   onChange={(e) => setJobDescription(e.target.value)}
                   className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 overflow-visible outline-none"
                 />
-
-               
               </div>
 
               <button
