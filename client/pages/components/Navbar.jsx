@@ -11,7 +11,7 @@ export default function Navbar() {
       <div className="flex gap-2 font-semibold text-lg">
         <Link href="/about" className="px-4 py-2 hover:bg-slate-700 rounded-md">About</Link>
         <Link href="/api/auth/login" className="px-4 py-2 hover:bg-slate-700 rounded-md">Login</Link>
-        <Link href="/api/auth/login" className="px-6 py-2 text-black bg-white hover:scale-105 active:scale-95 rounded-md">Get Started</Link>
+        <Link href="/homepage" className="px-6 py-2 text-black bg-white hover:scale-105 active:scale-95 rounded-md">Get Started</Link>
       </div>
     </nav>
   )
