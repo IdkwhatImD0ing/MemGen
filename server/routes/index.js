@@ -65,17 +65,17 @@ router.post('/generate', async function (req, res) {
   if (text && description) {
     try {
       const prompt =
-        'Generate a cover letter for the following job description:' +
+        'Generate a cover letter explaining why I would be a good fit for the company for the following job description: ' +
         description +
-        'Use the following information in the cover letter:' +
+        ' Use the following information in the cover letter: ' +
         text +
-        'Do not make up any information.'
+        ' Do not make up any information.'
       const response = await cohere.generate({
         model: 'command-xlarge-nightly',
         prompt: prompt,
         maxTokens: 5000,
-        temperature: 0.9,
-        topP: 1,
+        temperature: 1.5,
+        k: 5,
         stop_sequences: [],
         return_likelihoods: 'NONE',
       })
