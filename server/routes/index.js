@@ -28,6 +28,7 @@ pinecone.init({
   environment: 'asia-northeast1-gcp',
   apiKey: process.env.PINECONE_API_KEY,
 })
+pinecone.projectName = 'default'
 
 // Cohere Setup
 const cohere = require('cohere-ai')
@@ -54,10 +55,10 @@ router.post('/add', async function (req, res) {
       text: text,
       embedding: embedding.data[0].embedding,
     })
-    var namespace = userid;
+    var namespace = userid
     await index.upsert({
       vectors: [{id: uuid, values: embedding.data[0].embedding}],
-      namespace
+      namespace,
     })
 
     res.status(200).json({message: 'success', documentId: uuid})
