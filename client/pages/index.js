@@ -113,6 +113,7 @@ export default function Home() {
           </p>
         </a>
       </div>
+      <a href="/api/auth/login">Login</a>
     </main>
   )
 }
