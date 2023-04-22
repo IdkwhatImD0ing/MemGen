@@ -68,9 +68,6 @@ export default function HomePage() {
               </button>
             </form>
           </div>
-          <button className="bg-white text-black rounded-xl px-6 py-4 font-bold">
-            Generate
-          </button>
         </div>
       </div>
     );
