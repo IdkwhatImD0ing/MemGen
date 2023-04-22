@@ -1,1 +1,1 @@
-{"message":"success","data":["This is a sample text","This is another sample text"]}
+An error occurred while processing the PDF.

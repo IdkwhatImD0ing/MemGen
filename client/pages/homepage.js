@@ -54,11 +54,8 @@ export default function HomePage() {
         <div className="flex flex-col gap-8 items-center justify-center">
           <h1 className="text-3xl font-bold mt-10">{`Welcome ${user.name}, let's start building your cover letter.`}</h1>
           <div className="flex w-screen min-h-full">
-            <form
-              onSubmit={handleSubmit}
-              className="w-screen flex flex-col justify-center items-center gap-8"
-            >
-              <div className="w-screen flex justify-center items-center gap-8">
+            <form onSubmit={handleSubmit} className="w-screen flex flex-col justify-center items-center gap-12">
+              <div className="w-screen flex justify-center items-center gap-4">
                 <input
                   type="text"
                   placeholder="Enter the job description..."
