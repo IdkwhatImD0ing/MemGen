@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Project</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>Our Project Overview</h1>
+    <p>Welcome to our project! We have created an Express application with the following features:</p>
+    <ul>
+        <li>Integration with Firebase for storing user data and text embeddings.</li>
+        <li>Ability to add text and associated embeddings to a user's collection in the Firestore database.</li>
+        <li>Query the data by finding the most relevant items based on a given user and text input.</li>
+        <li>Integration with OpenAI and Cohere to generate text based on a job description and previous experiences.</li>
+        <li>File upload and processing capabilities, including converting PDFs to text and storing as a Buffer.</li>
+    </ul>
+    <p>This web application provides a powerful platform for text processing and content generation catering to job seekers and professionals.</p>
+
+    <h2>API Endpoints</h2>
+    <p>The following API endpoints are available:</p>
+    <dl>
+        <dt><code>POST /add</code></dt>
+        <dd>Adds text and associated embeddings. Requires the parameters <code>userid</code> and <code>text</code>.</dd>
+
+        <dt><code>POST /query</code></dt>
+        <dd>Queries the most relevant items based on the given user and text input. Requires the parameters <code>userid</code> and <code>text</code>.</dd>
+
+        <dt><code>POST /generate</code></dt>
+        <dd>Generates text based on a job description and previous experiences. Requires the parameters <code>description</code> and <code>text</code>.</dd>
+
+        <dt><code>POST /upload</code></dt>
+        <dd>Converts an uploaded PDF to text. Requires a PDF file uploaded with the field name <code>pdf</code>.</dd>
+    </dl>
+</body>
+</html>
