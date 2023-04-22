@@ -4,6 +4,9 @@ var serviceAccount = require('../firebase.json')
 const {Configuration, OpenAIApi} = require('openai')
 const axios = require('axios')
 
+// Uuid
+const {v4: uuidv4} = require('uuid')
+
 // Firebase Setup
 const admin = require('firebase-admin')
 let defaultApp = admin.initializeApp({
@@ -33,6 +36,44 @@ cohere.init(process.env.COHERE_API_KEY)
 /* GET home page. */
 router.get('/', function (req, res) {
   res.render('index', {title: 'Express'})
+})
+
+router.post('/add', async function (req, res) {
+  const {userid, text} = req.body
+  const embedding = await fetchEmbedding(text)
+  const uuid = uuidv4()
+
+  const index = pinecone.getIndex('resume')
+
+  // Add the text and embedding to Firebase
+  const userCollection = defaultDatabase.collection(userid)
+  const document = userCollection.doc(uuid)
+
+  try {
+    await document.set({
+      text: text,
+      embedding: embedding,
+    })
+
+    await index.upsert({
+      namespace: userid,
+      id: uuid,
+      vector: embedding,
+    })
+
+    res.status(200).json({message: 'success', documentId: uuid})
+  } catch (error) {
+    // Rollback: delete the document in Firebase if it was added
+    const docSnapshot = await document.get()
+    if (docSnapshot.exists) {
+      await document.delete()
+    }
+
+    res.status(500).json({
+      message: 'An error occurred while processing the transaction.',
+      error: error.message,
+    })
+  }
 })
 
 /* POST route to handle JSON input */
