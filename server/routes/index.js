@@ -3,7 +3,7 @@ var router = express.Router()
 var serviceAccount = require('../firebase.json')
 const {Configuration, OpenAIApi} = require('openai')
 const axios = require('axios')
-const {MilvusClient} = require('@zilliz/milvus2-sdk-node')
+const {MilvusClient, DataType, MetricType} = require('@zilliz/milvus2-sdk-node')
 const config = require('../config.js')
 const {uri, user, password, secure} = config
 const milvusClient = new MilvusClient(uri, secure, user, password, secure)
@@ -91,14 +91,15 @@ router.post('/query', async function (req, res) {
     const searchParams = {
       anns_field: 'vector',
       topk: 3,
-      metric_type: 'L2',
+      metric_type: MetricType.L2,
+      params: JSON.stringify({nprobe: 1024}),
     }
     const searchReq = {
-      collectionName: 'Resume',
+      collection_name: 'Resume',
       vectors: [embedding],
-      params: searchParams,
-      vector_type: 'float',
-      expr: 'userid == ' + userid,
+      search_params: searchParams,
+      vector_type: DataType.FloatVector,
+      expr: `userid == "${userid}"`,
       output_fields: ['uuid'],
     }
 
