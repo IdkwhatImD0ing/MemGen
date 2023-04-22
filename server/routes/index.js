@@ -3,7 +3,8 @@ var router = express.Router()
 var serviceAccount = require('../firebase.json')
 const {Configuration, OpenAIApi} = require('openai')
 const axios = require('axios')
-const {MilvueClient} = require('@zilliz/milvus2-sdk-node')
+const {MilvusClient} = require('@zilliz/milvus2-sdk-node')
+const milvusClient = new MilvusClient(MILUVS_ADDRESS)
 
 // Uuid
 const {v4: uuidv4} = require('uuid')
@@ -35,30 +36,30 @@ router.post('/add', async function (req, res) {
   const embedding = await fetchEmbedding(text)
   const uuid = uuidv4()
 
-  const index = pinecone.Index('resume')
-
   // Add the text and embedding to Firebase
   const userCollection = defaultDatabase.collection(userid)
   const document = userCollection.doc(uuid)
 
   try {
-    // await document.set({
-    //   text: text,
-    //   embedding: embedding.data[0].embedding,
-    // })
-    var namespace = userid
-    const upsertRequest = {
-      vectors: [
+    await document.set({
+      text: text,
+      embedding: embedding,
+    })
+
+    const data = {
+      collection_name: 'resume',
+      fields_data: [
         {
-          id: uuid,
-          vector: embedding.data[0].embedding,
+          uuid: uuid,
+          vector: [embedding],
+          userid: userid,
         },
       ],
-      namespace: namespace,
     }
-    await index.upsert({upsertRequest})
 
-    res.status(200).json({message: 'success', documentId: uuid})
+    const res = await milvusClient.insert(data)
+
+    res.status(200).json({message: 'success', res})
   } catch (error) {
     // Rollback: delete the document in Firebase if it was added
     const docSnapshot = await document.get()
@@ -78,21 +79,28 @@ router.post('/query', async function (req, res) {
   const {userid, text} = req.body
 
   if (userid && text) {
+    // Reload collection
+    await milvusClient.loadCollection({
+      collection_name: 'resume',
+    })
+
     // Process the data as needed
     const embedding = await fetchEmbedding(text)
     const searchParams = {
-      anns_field: "vector",
+      anns_field: 'vector',
       topk: 3,
-      metric_type: "L2",
+      metric_type: 'L2',
     }
     const searchReq = {
-      collectionName: "resume",
+      collectionName: 'resume',
       vectors: [embedding],
       params: searchParams,
-      vector_type: "float",
-      expr: "userid == " + userid,
-      output_fields: ["uuid"]
+      vector_type: 'float',
+      expr: 'userid == ' + userid,
+      output_fields: ['uuid'],
     }
+
+    const searchResults = await milvusClient.search(searchReq)
     res.status(200).json({message: 'success', data: searchResults})
   } else {
     res.status(400).json({
@@ -145,7 +153,7 @@ async function fetchEmbedding(text) {
       input: text,
     })
 
-    return response.data.data[0].embedding,
+    return response.data.data[0].embedding
   } catch (error) {
     console.error('Error fetching embedding:', error)
     throw error
