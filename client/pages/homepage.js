@@ -6,6 +6,8 @@ import { Inter, Montserrat } from "next/font/google";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { getCoverLetter, generate } from "@/functions/axios";
+import { PacmanLoader } from "react-spinners";
+import Typewriter from "typewriter-effect";
 
 const montserrat = Montserrat({ subsets: ["latin"] });
 
@@ -23,17 +25,20 @@ export default function HomePage() {
 
   const [jobDescription, setJobDescription] = useState("");
   const [coverletter, setCoverletter] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [loading2, setLoading2] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const res = await getCoverLetter(user.sub, jobDescription);
     let generateInput = [];
     for (let i = 0; i < res.data.length; i++) {
       generateInput.push(res.data[i]);
       alert(res.data[i]);
     }
+    setLoading(false);
+    setLoading2(true);
     let finalString = generateInput.join(" ");
 
     console.log(finalString);
@@ -43,7 +48,12 @@ export default function HomePage() {
     console.log(generateres);
 
     setCoverletter(generateres.data.body.generations[0].text);
+    setLoading2(false);
   };
+
+  const CHUNK_SIZE = 50
+
+  const chunks = coverletter.match(new RegExp(`.{1,${CHUNK_SIZE}}`, "g"));
 
   if (user) {
     return (
@@ -64,9 +74,49 @@ export default function HomePage() {
                   className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 overflow-visible outline-none"
                 />
 
-                <div className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 outline-none">
+                {loading ? (
+                  <div className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 flex flex-col items-center justify-center gap-2">
+                    <PacmanLoader
+                      color={"#ffffff"}
+                      loading={loading}
+                      size={50}
+                    />
+                    <div className="flex flex-col justify-center items-center">
+                      <p>Searching among your experiences for the best matches</p>
+                      <p>to the job description...</p>
+                    </div>
+
+                  </div>
+                ) : loading2 ? (
+                  <div className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 flex flex-col items-center justify-center gap-2">
+                    <PacmanLoader
+                      color={"#ffffff"}
+                      loading={loading2}
+                      size={50}
+                    />
+
+                    <p>Generating your cover letter...</p>
+                  </div>
+                ) : (
+                  <div className="text-white bg-slate-700 p-4 w-[35%] max-w-[35%] min-h-[100%] rounded-md">
+                    <Typewriter
+                      onInit={(typewriter) => {
+                        typewriter
+                          .pauseFor(0)
+                          .changeDelay(5)
+                          .typeString(coverletter[0])
+                          .start();
+                        for (let i = 1; i < coverletter.length; i++) {
+                          typewriter.typeString(coverletter[i]);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* <div className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 outline-none">
                   {coverletter}
-                </div>
+                </div> */}
               </div>
 
               <button
