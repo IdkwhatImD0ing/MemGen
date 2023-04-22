@@ -43,7 +43,7 @@ router.post('/add', async function (req, res) {
   const embedding = await fetchEmbedding(text)
   const uuid = uuidv4()
 
-  const index = pinecone.getIndex('resume')
+  const index = pinecone.Index('resume')
 
   // Add the text and embedding to Firebase
   const userCollection = defaultDatabase.collection(userid)
@@ -52,13 +52,12 @@ router.post('/add', async function (req, res) {
   try {
     await document.set({
       text: text,
-      embedding: embedding,
+      embedding: embedding.data[0].embedding,
     })
 
     await index.upsert({
       namespace: userid,
-      id: uuid,
-      vector: embedding,
+      vectors: [{id: uuid, values: embedding.data[0].embedding}],
     })
 
     res.status(200).json({message: 'success', documentId: uuid})
