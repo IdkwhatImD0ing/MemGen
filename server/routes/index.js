@@ -145,7 +145,7 @@ router.post('/generate', async function (req, res) {
   const doc = await document.get()
   const data = doc.data()
   const credits = data.credits
-  const tier = data.tier
+    const tier = data.tier
 
   if (credits < 1 && tier != "Admin") {
     res.status(400).json({
@@ -170,7 +170,13 @@ Write a cover letter that matches the job description and utilizes the previous 
         stop_sequences: [],
         return_likelihoods: 'NONE',
       })
-
+      //Decrease credits by 1
+      if (tier != "Admin"){
+        await document.update({
+          credits: credits - 1,
+          tier: tier,
+        })
+      }
       res.status(200).json({message: 'success', data: response})
     } catch (error) {
       res.status(500).json({
