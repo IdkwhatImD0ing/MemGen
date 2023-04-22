@@ -137,7 +137,21 @@ router.post('/query', async function (req, res) {
 })
 
 router.post('/generate', async function (req, res) {
-  const {description, text} = req.body
+  const {userid, description, text} = req.body
+
+  //Search user collection, "Account" docs, credits to see if they have enough credits
+  const userCollection = defaultDatabase.collection(userid)
+  const document = userCollection.doc('Account')
+  const doc = await document.get()
+  const data = doc.data()
+  const credits = data.credits
+
+  if (credits < 1) {
+    res.status(400).json({
+      message:
+        'Bad request. You do not have enough credits to generate a cover letter.',
+    })
+  }
 
   if (text && description) {
     try {
@@ -187,7 +201,31 @@ router.post('/upload', upload.single('pdf'), async (req, res) => {
   }
 })
 
-module.exports = router
+router.post('/user/signup', async (req, res) => {
+  const { userid } = req.body;
+
+  // Input validation
+  if (!userid || typeof userid !== 'string') {
+    return res.status(400).send('Invalid user ID');
+  }
+
+  const userCollection = defaultDatabase.collection(userid);
+  const document = userCollection.doc('Account');
+
+  try {
+    await document.set({
+      tier: 'User',
+      credits: 5,
+    });
+
+    res.status(200).send('User successfully created');
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).send('Error creating user');
+  }
+})
+
+module.exports = router;
 
 async function fetchEmbedding(text) {
   try {
@@ -202,3 +240,4 @@ async function fetchEmbedding(text) {
     throw error
   }
 }
+
