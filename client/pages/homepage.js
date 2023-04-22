@@ -53,10 +53,11 @@ export default function HomePage() {
 
                 <input
                   type="text"
-                  placeholder="Enter the job description..."
+                  placeholder="Letter generating..."
                   value={coverletter}
                   onChange={(e) => setCoverletter(e.target.value)}
                   className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 outline-none"
+                  readOnly
                 />
               </div>
 
