@@ -145,8 +145,9 @@ router.post('/generate', async function (req, res) {
   const doc = await document.get()
   const data = doc.data()
   const credits = data.credits
+  const tier = data.tier
 
-  if (credits < 1) {
+  if (credits < 1 && tier != "Admin") {
     res.status(400).json({
       message:
         'Bad request. You do not have enough credits to generate a cover letter.',
