@@ -1,1 +1,1 @@
-{"message":"success","data":{"status":{"error_code":"Success","reason":"","code":0},"results":[{"score":0,"id":"149e3d3a-f40c-4815-91d6-d7f81eb16831","uuid":"149e3d3a-f40c-4815-91d6-d7f81eb16831"},{"score":0.05414082854986191,"id":"7950f721-be58-4557-a591-f043b48befbd","uuid":"7950f721-be58-4557-a591-f043b48befbd"}]}}
+{"message":"success","data":["This is a sample text","This is another sample text"]}

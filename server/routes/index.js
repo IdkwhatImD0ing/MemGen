@@ -104,7 +104,24 @@ router.post('/query', async function (req, res) {
     }
 
     const searchResults = await milvusClient.search(searchReq)
-    res.status(200).json({message: 'success', data: searchResults})
+    // Process the search results
+    const messagePromises = searchResults.results.map(async (result) => {
+      // Find the corresponding document in firebase
+      const id = result.id
+      const docRef = defaultDatabase.collection(userid).doc(id)
+      const doc = await docRef.get()
+
+      const data = doc.data()
+      const text = data.text
+      console.log(text)
+      return text
+    })
+
+    // Wait for all promises to resolve
+    const messageArray = await Promise.all(messagePromises)
+
+    // Send the response
+    res.status(200).json({message: 'success', data: messageArray})
   } else {
     res.status(400).json({
       message: 'Bad request. Please provide both userid and text fields.',
@@ -132,6 +149,7 @@ router.post('/generate', async function (req, res) {
         stop_sequences: [],
         return_likelihoods: 'NONE',
       })
+
       res.status(200).json({message: 'success', data: response})
     } catch (error) {
       res.status(500).json({
