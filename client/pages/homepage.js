@@ -61,7 +61,6 @@ export default function HomePage() {
                 />
               </div>
 
-
               <button
                 type="submit"
                 className="bg-white text-black rounded-xl px-6 py-4 font-bold hover:scale-105 active:scale-95">
