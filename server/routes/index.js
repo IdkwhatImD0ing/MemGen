@@ -51,15 +51,21 @@ router.post('/add', async function (req, res) {
   const document = userCollection.doc(uuid)
 
   try {
-    await document.set({
-      text: text,
-      embedding: embedding.data[0].embedding,
-    })
+    // await document.set({
+    //   text: text,
+    //   embedding: embedding.data[0].embedding,
+    // })
     var namespace = userid
-    await index.upsert({
-      vectors: [{id: uuid, values: embedding.data[0].embedding}],
-      namespace,
-    })
+    const upsertRequest = {
+      vectors: [
+        {
+          id: uuid,
+          vector: embedding.data[0].embedding,
+        },
+      ],
+      namespace: namespace,
+    }
+    await index.upsert({upsertRequest})
 
     res.status(200).json({message: 'success', documentId: uuid})
   } catch (error) {
