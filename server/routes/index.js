@@ -3,6 +3,7 @@ var router = express.Router()
 var serviceAccount = require('../firebase.json')
 const {Configuration, OpenAIApi} = require('openai')
 const axios = require('axios')
+const {MilvueClient} = require('@zilliz/milvus2-sdk-node')
 
 // Uuid
 const {v4: uuidv4} = require('uuid')
@@ -19,16 +20,6 @@ const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 })
 const openai = new OpenAIApi(configuration)
-
-// Pinecone Setup
-const {PineconeClient} = require('@pinecone-database/pinecone')
-
-const pinecone = new PineconeClient()
-pinecone.init({
-  environment: 'asia-northeast1-gcp',
-  apiKey: process.env.PINECONE_API_KEY,
-})
-pinecone.projectName = 'default'
 
 // Cohere Setup
 const cohere = require('cohere-ai')
@@ -89,15 +80,19 @@ router.post('/query', async function (req, res) {
   if (userid && text) {
     // Process the data as needed
     const embedding = await fetchEmbedding(text)
-    const index = pinecone.getIndex('resume')
-    const searchResults = await index.query({
-      query: {
-        vector: embedding,
-        topK: 3,
-        includeValues: false,
-      },
-      namespace: userid,
-    })
+    const searchParams = {
+      anns_field: "vector",
+      topk: 3,
+      metric_type: "L2",
+    }
+    const searchReq = {
+      collectionName: "resume",
+      vectors: [embedding],
+      params: searchParams,
+      vector_type: "float",
+      expr: "userid == " + userid,
+      output_fields: ["uuid"]
+    }
     res.status(200).json({message: 'success', data: searchResults})
   } else {
     res.status(400).json({
@@ -150,7 +145,7 @@ async function fetchEmbedding(text) {
       input: text,
     })
 
-    return response.data
+    return response.data.data[0].embedding,
   } catch (error) {
     console.error('Error fetching embedding:', error)
     throw error
