@@ -4,7 +4,9 @@ var serviceAccount = require('../firebase.json')
 const {Configuration, OpenAIApi} = require('openai')
 const axios = require('axios')
 const {MilvusClient} = require('@zilliz/milvus2-sdk-node')
-const milvusClient = new MilvusClient(MILUVS_ADDRESS)
+const config = require('../config.js')
+const {uri, user, password, secure} = config
+const milvusClient = new MilvusClient(uri, secure, user, password, secure)
 
 // Uuid
 const {v4: uuidv4} = require('uuid')
@@ -47,19 +49,19 @@ router.post('/add', async function (req, res) {
     })
 
     const data = {
-      collection_name: 'resume',
+      collection_name: 'Resume',
       fields_data: [
         {
           uuid: uuid,
-          vector: [embedding],
+          vector: embedding,
           userid: userid,
         },
       ],
     }
 
-    const res = await milvusClient.insert(data)
+    const ret = await milvusClient.insert(data)
 
-    res.status(200).json({message: 'success', res})
+    res.status(200).json({message: 'success', ret})
   } catch (error) {
     // Rollback: delete the document in Firebase if it was added
     const docSnapshot = await document.get()
@@ -81,7 +83,7 @@ router.post('/query', async function (req, res) {
   if (userid && text) {
     // Reload collection
     await milvusClient.loadCollection({
-      collection_name: 'resume',
+      collection_name: 'Resume',
     })
 
     // Process the data as needed
@@ -92,7 +94,7 @@ router.post('/query', async function (req, res) {
       metric_type: 'L2',
     }
     const searchReq = {
-      collectionName: 'resume',
+      collectionName: 'Resume',
       vectors: [embedding],
       params: searchParams,
       vector_type: 'float',
