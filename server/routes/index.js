@@ -16,17 +16,22 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration)
 
 /* GET home page. */
-router.get('/', function (req, res, next) {
+router.get('/', function (req, res) {
   res.render('index', {title: 'Express'})
 })
 
 /* POST route to handle JSON input */
-router.post('/query', async function (req, res, next) {
+router.post('/query', async function (req, res) {
   const {userid, text} = req.body
 
   if (userid && text) {
     // Process the data as needed
-    const embedding = await fetchEmbedding(text)  
+    const embedding = await fetchEmbedding(text)
+    const searchResults = await searchTop5ClosestMatches(
+      embedding,
+      userid + '_collection',
+    )
+    res.status(200).json({message: 'success', data: searchResults})
   } else {
     res.status(400).json({
       message: 'Bad request. Please provide both userid and text fields.',
@@ -47,5 +52,29 @@ async function fetchEmbedding(text) {
   } catch (error) {
     console.error('Error fetching embedding:', error)
     throw error
+  }
+}
+
+async function searchTop5ClosestMatches(searchVector, collectionName) {
+  try {
+    const response = await axios.post('http://localhost:9091/api/v1/search', {
+      collection_name: collectionName,
+      search: {
+        vectors: [searchVector],
+        output_fields: 'uuid',
+        top_k: 5,
+        anns_field: 'embeddings',
+      },
+    })
+
+    if (response.status === 200) {
+      return response.data
+    } else {
+      console.error('Error:', response.status, response.statusText)
+      return null
+    }
+  } catch (error) {
+    console.error('Error:', error.message)
+    return null
   }
 }
