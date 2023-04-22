@@ -23,9 +23,10 @@ const getCoverLetter = async (userid, text) => {
   }
 };
 
-const generate = async (description, text) => {
+const generate = async (userid, description, text) => {
   try {
     const response = await axios.post("http://localhost:3000/generate", {
+      userid: userid,
       description: description,
       text: text,
     });
