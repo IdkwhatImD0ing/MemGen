@@ -38,7 +38,7 @@ export default function HomePage() {
 
     console.log(finalString);
 
-    const generateres = await generate(jobDescription, finalString);
+    const generateres = await generate(user.sub, jobDescription, finalString);
 
     console.log(generateres);
 
