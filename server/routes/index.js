@@ -10,9 +10,10 @@ const milvusClient = new MilvusClient(uri, secure, user, password, secure)
 
 // Images
 const {fromBuffer} = require('pdf2pic')
+const {PDFDocument} = require('pdf-lib')
+
 const Busboy = require('busboy')
 const {ImageAnnotatorClient} = require('@google-cloud/vision')
-const {PDFDocument} = require('pdf-lib')
 const client = new ImageAnnotatorClient()
 
 // Uuid
@@ -192,29 +193,26 @@ router.post('/upload', (req, res) => {
       try {
         const pdfBuffer = await streamToBuffer(file)
 
-        const options = {
-          density: 100,
-          saveFilename: 'pdf_image',
-          savePath: './images',
-          format: 'png',
-          width: 1024,
-          height: 768,
-        }
-
-        const pdf2picInstance = fromBuffer(pdfBuffer, options)
-
-        const pdfDoc = await PDFDocument.load(pdfBuffer)
-        const totalPages = pdfDoc.getPageCount()
+        const pdfDoc = await pdfjs.getDocument({data: pdfBuffer}).promise
+        const pdfDocLib = await PDFDocument.load(pdfBuffer)
+        const totalPages = pdfDocLib.getPageCount()
         console.log(`Total pages: ${totalPages}`)
+
         const uploadedImages = await Promise.all(
           Array.from({length: totalPages}, async (_, index) => {
             const pageNumber = index + 1
 
-            const imageBuffer = await pdf2picInstance.convert(pageNumber)
+            const page = await pdfDoc.getPage(pageNumber)
+            const imageDataUrl = await pdfPageToImage(page)
+
+            const imageBuffer = Buffer.from(
+              imageDataUrl.split(',')[1],
+              'base64',
+            )
 
             const imageFileName = `pdf-images/${Date.now()}_${pageNumber}.png`
             const imageFile = bucket.file(imageFileName)
-            await imageFile.save(imageBuffer.buffer, {
+            await imageFile.save(imageBuffer, {
               metadata: {contentType: 'image/png'},
             })
 
@@ -312,4 +310,16 @@ function streamToBuffer(stream) {
     stream.on('error', reject)
     stream.on('end', () => resolve(Buffer.concat(chunks)))
   })
+}
+
+async function pdfPageToImage(page) {
+  const viewport = page.getViewport({scale: 1})
+  const canvasFactory = new pdfjs.DOMCanvasFactory()
+  const renderingContext = {
+    canvasContext: canvasFactory.create(viewport.width, viewport.height),
+    viewport: viewport,
+    canvasFactory: canvasFactory,
+  }
+  await page.render(renderingContext).promise
+  return renderingContext.canvasContext.canvas.toDataURL()
 }
