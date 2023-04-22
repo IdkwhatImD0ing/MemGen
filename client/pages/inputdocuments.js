@@ -5,6 +5,7 @@ import Navbar2 from "./components/Navbar2";
 import { Inter, Montserrat } from "next/font/google";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { inputDocument } from "@/functions/axios";
 
 const montserrat = Montserrat({ subsets: ["latin"] });
 
@@ -27,12 +28,9 @@ export default function InputDocuments() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await axios
-      .post("/api/coverletter", { jobDescription })
-      .then((res) => {
-        setLoading(false);
-        setCoverletter(res.data);
-      });
+    await inputDocument(user.sub, jobDescription);
+    alert("done");
+    //setJobDescription(res);
   };
 
   if (user) {
@@ -56,8 +54,6 @@ export default function InputDocuments() {
                   onChange={(e) => setJobDescription(e.target.value)}
                   className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 overflow-visible outline-none"
                 />
-
-               
               </div>
 
               <button
