@@ -38,10 +38,10 @@ export default function HomePage() {
     return (
       <div className={`bg-black text-white min-h-screen px-10 py-2 ${montserrat.className}`}>
         <Navbar2 />
-        <div className="flex flex-col gap-8 items-center justify-center">
+        <div className="flex flex-col gap-12 items-center justify-center">
           <h1 className="text-3xl font-bold mt-10">{`Welcome ${user.name}, let's start building your cover letter`}</h1>
           <div className="flex w-screen min-h-full">
-            <form onSubmit={handleSubmit} className="w-screen flex flex-col justify-center items-center gap-8">
+            <form onSubmit={handleSubmit} className="w-screen flex flex-col justify-center items-center gap-12">
               <div className="w-screen flex justify-center items-center gap-4">
                 <input
                   type="text"
@@ -60,7 +60,6 @@ export default function HomePage() {
                   readOnly
                 />
               </div>
-
 
               <button
                 type="submit"
