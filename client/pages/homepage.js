@@ -5,6 +5,7 @@ import Navbar2 from "./components/Navbar2"
 import { Inter, Montserrat } from "next/font/google"
 import { useEffect, useState } from "react"
 import axios from "axios"
+import { PacmanLoader } from "react-spinners"
 
 const montserrat = Montserrat({ subsets: ['latin'] })
 
@@ -24,6 +25,12 @@ export default function HomePage() {
   const [coverletter, setCoverletter] = useState("")
   const [loading, setLoading] = useState(true)
   const [loading2, setLoading2] = useState(false)
+
+  useEffect(() => {
+    if (coverletter) {
+      setLoading(false)
+    }
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -50,15 +57,30 @@ export default function HomePage() {
                   onChange={(e) => setJobDescription(e.target.value)}
                   className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 overflow-visible outline-none"
                 />
+                {loading ? (
+                  <div className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 flex flex-col items-center justify-center gap-2">
+                    <PacmanLoader
+                      color={"#ffffff"}
+                      loading={loading}
+                      size={50}
+                    />
 
-                <input
+                    <p>Your cover letter is being generated...</p>
+                    <p>This process may take up to 2 minutes</p>
+                  </div>
+                ) : (
+                  <div className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 outline-none">
+                    <p>Your cover letter is ready!</p>
+                  </div>  
+                )}
+                {/* <input
                   type="text"
                   placeholder="Letter generating..."
                   value={coverletter}
                   onChange={(e) => setCoverletter(e.target.value)}
                   className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 outline-none"
                   readOnly
-                />
+                /> */}
               </div>
 
               <button
