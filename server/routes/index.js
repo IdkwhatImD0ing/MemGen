@@ -4,6 +4,8 @@ var serviceAccount = require('../firebase.json')
 const {Configuration, OpenAIApi} = require('openai')
 const axios = require('axios')
 
+// Firebase Setup
+const admin = require('firebase-admin')
 let defaultApp = admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 })
@@ -14,6 +16,19 @@ const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 })
 const openai = new OpenAIApi(configuration)
+
+// Pinecone Setup
+const {PineconeClient} = require('@pinecone-database/pinecone')
+
+const pinecone = new PineconeClient()
+pinecone.init({
+  environment: 'asia-northeast1-gcp',
+  apiKey: process.env.PINECONE_API_KEY,
+})
+
+// Cohere Setup
+const cohere = require('cohere-ai')
+cohere.init(process.env.COHERE_API_KEY)
 
 /* GET home page. */
 router.get('/', function (req, res) {
@@ -27,11 +42,54 @@ router.post('/query', async function (req, res) {
   if (userid && text) {
     // Process the data as needed
     const embedding = await fetchEmbedding(text)
-    const searchResults = await searchTop5ClosestMatches(embedding, userid)
+    const index = pinecone.getIndex('resume')
+    const searchResults = await index.query({
+      query: {
+        vector: embedding,
+        topK: 3,
+        includeValues: false,
+      },
+      namespace: userid,
+    })
     res.status(200).json({message: 'success', data: searchResults})
   } else {
     res.status(400).json({
       message: 'Bad request. Please provide both userid and text fields.',
+    })
+  }
+})
+
+router.post('/generate', async function (req, res) {
+  const {description, text} = req.body
+
+  if (text && description) {
+    try {
+      const prompt =
+        'Generate a cover letter explaining why I would be a good fit for the company for the following job description: ' +
+        description +
+        ' Use the following information in the cover letter: ' +
+        text +
+        ' Do not make up any information.'
+      const response = await cohere.generate({
+        model: 'command-xlarge-nightly',
+        prompt: prompt,
+        maxTokens: 5000,
+        temperature: 1.5,
+        k: 5,
+        stop_sequences: [],
+        return_likelihoods: 'NONE',
+      })
+      res.status(200).json({message: 'success', data: response})
+    } catch (error) {
+      res.status(500).json({
+        message: 'An error occurred while processing your request.',
+        error: error.message,
+      })
+    }
+  } else {
+    res.status(400).json({
+      message:
+        'Bad request. Please provide a JSON string in the "jsonPrompt" field.',
     })
   }
 })
@@ -49,29 +107,5 @@ async function fetchEmbedding(text) {
   } catch (error) {
     console.error('Error fetching embedding:', error)
     throw error
-  }
-}
-
-async function searchTop5ClosestMatches(searchVector, collectionName) {
-  try {
-    const response = await axios.post('http://localhost:9091/api/v1/search', {
-      collection_name: collectionName,
-      search: {
-        vectors: [searchVector],
-        output_fields: 'uuid',
-        top_k: 5,
-        anns_field: 'embeddings',
-      },
-    })
-
-    if (response.status === 200) {
-      return response.data
-    } else {
-      console.error('Error:', response.status, response.statusText)
-      return null
-    }
-  } catch (error) {
-    console.error('Error:', error.message)
-    return null
   }
 }
