@@ -8,13 +8,13 @@ const config = require('../config.js')
 const {uri, user, password, secure} = config
 const milvusClient = new MilvusClient(uri, secure, user, password, secure)
 
-// Images
-const {fromBuffer} = require('pdf2pic')
-const {PDFDocument} = require('pdf-lib')
+// // Images
+// const {fromBuffer} = require('pdf2pic')
+// const {PDFDocument} = require('pdf-lib')
 
-const Busboy = require('busboy')
-const {ImageAnnotatorClient} = require('@google-cloud/vision')
-const client = new ImageAnnotatorClient()
+// const Busboy = require('busboy')
+// const {ImageAnnotatorClient} = require('@google-cloud/vision')
+// const client = new ImageAnnotatorClient()
 
 // Uuid
 const {v4: uuidv4} = require('uuid')
@@ -175,117 +175,117 @@ Write a cover letter that matches the job description and utilizes the previous 
   }
 })
 
-router.post('/upload', (req, res) => {
-  req.headers['content-type'] =
-    req.headers['content-type'] || req.headers['Content-Type']
-  const busboy = Busboy({headers: req.headers, autoFields: true})
-  console.log('Content-Type:', req.headers['content-type'])
+// router.post('/upload', (req, res) => {
+//   req.headers['content-type'] =
+//     req.headers['content-type'] || req.headers['Content-Type']
+//   const busboy = Busboy({headers: req.headers, autoFields: true})
+//   console.log('Content-Type:', req.headers['content-type'])
 
-  busboy.on('file', async (name, file, info) => {
-    const {filename, encoding, mimeType} = info
-    console.log(
-      `File [${name}]: filename: %j, encoding: %j, mimeType: %j`,
-      filename,
-      encoding,
-      mimeType,
-    )
-    if (mimeType === 'application/pdf') {
-      try {
-        const pdfBuffer = await streamToBuffer(file)
+//   busboy.on('file', async (name, file, info) => {
+//     const {filename, encoding, mimeType} = info
+//     console.log(
+//       `File [${name}]: filename: %j, encoding: %j, mimeType: %j`,
+//       filename,
+//       encoding,
+//       mimeType,
+//     )
+//     if (mimeType === 'application/pdf') {
+//       try {
+//         const pdfBuffer = await streamToBuffer(file)
 
-        const pdfDoc = await pdfjs.getDocument({data: pdfBuffer}).promise
-        const pdfDocLib = await PDFDocument.load(pdfBuffer)
-        const totalPages = pdfDocLib.getPageCount()
-        console.log(`Total pages: ${totalPages}`)
+//         const pdfDoc = await pdfjs.getDocument({data: pdfBuffer}).promise
+//         const pdfDocLib = await PDFDocument.load(pdfBuffer)
+//         const totalPages = pdfDocLib.getPageCount()
+//         console.log(`Total pages: ${totalPages}`)
 
-        const uploadedImages = await Promise.all(
-          Array.from({length: totalPages}, async (_, index) => {
-            const pageNumber = index + 1
+//         const uploadedImages = await Promise.all(
+//           Array.from({length: totalPages}, async (_, index) => {
+//             const pageNumber = index + 1
 
-            const page = await pdfDoc.getPage(pageNumber)
-            const imageDataUrl = await pdfPageToImage(page)
+//             const page = await pdfDoc.getPage(pageNumber)
+//             const imageDataUrl = await pdfPageToImage(page)
 
-            const imageBuffer = Buffer.from(
-              imageDataUrl.split(',')[1],
-              'base64',
-            )
+//             const imageBuffer = Buffer.from(
+//               imageDataUrl.split(',')[1],
+//               'base64',
+//             )
 
-            const imageFileName = `pdf-images/${Date.now()}_${pageNumber}.png`
-            const imageFile = bucket.file(imageFileName)
-            await imageFile.save(imageBuffer, {
-              metadata: {contentType: 'image/png'},
-            })
+//             const imageFileName = `pdf-images/${Date.now()}_${pageNumber}.png`
+//             const imageFile = bucket.file(imageFileName)
+//             await imageFile.save(imageBuffer, {
+//               metadata: {contentType: 'image/png'},
+//             })
 
-            return `gs://${bucket.name}/${imageFileName}`
-          }),
-        )
+//             return `gs://${bucket.name}/${imageFileName}`
+//           }),
+//         )
 
-        // Prepare the requests for Google Cloud Vision API
-        const inputConfig = {
-          mimeType: 'image/png',
-        }
-        const requests = uploadedImages.map((gcsImageUri) => ({
-          inputConfig,
-          gcsImage: {gcsImageUri},
-          features: [{type: 'DOCUMENT_TEXT_DETECTION'}],
-        }))
+//         // Prepare the requests for Google Cloud Vision API
+//         const inputConfig = {
+//           mimeType: 'image/png',
+//         }
+//         const requests = uploadedImages.map((gcsImageUri) => ({
+//           inputConfig,
+//           gcsImage: {gcsImageUri},
+//           features: [{type: 'DOCUMENT_TEXT_DETECTION'}],
+//         }))
 
-        console.log('Sending requests to Google Cloud Vision API...')
+//         console.log('Sending requests to Google Cloud Vision API...')
 
-        // Create asyncBatchAnnotateFiles request
-        const asyncRequest = {
-          requests,
-          outputConfig: {
-            gcsDestination: {
-              uri: `gs://${bucket.name}/text-output/`,
-            },
-          },
-        }
+//         // Create asyncBatchAnnotateFiles request
+//         const asyncRequest = {
+//           requests,
+//           outputConfig: {
+//             gcsDestination: {
+//               uri: `gs://${bucket.name}/text-output/`,
+//             },
+//           },
+//         }
 
-        // Call files:asyncBatchAnnotate function
-        const [operation] = await client.asyncBatchAnnotateFiles(asyncRequest)
-        const [filesResponse] = await operation.promise()
+//         // Call files:asyncBatchAnnotate function
+//         const [operation] = await client.asyncBatchAnnotateFiles(asyncRequest)
+//         const [filesResponse] = await operation.promise()
 
-        console.log('Processing the response...')
+//         console.log('Processing the response...')
 
-        // Get the JSON output file
-        const outputUri =
-          filesResponse.responses[0].outputConfig.gcsDestination.uri
-        const jsonFileName = outputUri.replace('gs://' + bucket.name + '/', '')
-        const [jsonFile] = await bucket.file(jsonFileName).download()
+//         // Get the JSON output file
+//         const outputUri =
+//           filesResponse.responses[0].outputConfig.gcsDestination.uri
+//         const jsonFileName = outputUri.replace('gs://' + bucket.name + '/', '')
+//         const [jsonFile] = await bucket.file(jsonFileName).download()
 
-        console.log('Extracting text from the response...')
+//         console.log('Extracting text from the response...')
 
-        // Parse the JSON file and extract text
-        const jsonContent = JSON.parse(jsonFile.toString())
-        const fullText = jsonContent.responses
-          .map((response) => response.fullTextAnnotation.text)
-          .join('\n')
+//         // Parse the JSON file and extract text
+//         const jsonContent = JSON.parse(jsonFile.toString())
+//         const fullText = jsonContent.responses
+//           .map((response) => response.fullTextAnnotation.text)
+//           .join('\n')
 
-        console.log('Sending the response...')
-        console.log(fullText)
+//         console.log('Sending the response...')
+//         console.log(fullText)
 
-        // Send the extracted text as the response
-        res.send(fullText)
-      } catch (error) {
-        console.error(error)
-        res.status(500).send('An error occurred while processing the PDF.')
-      }
-    } else {
-      res.status(400).send('Invalid file type. Please upload a PDF.')
-    }
-  })
+//         // Send the extracted text as the response
+//         res.send(fullText)
+//       } catch (error) {
+//         console.error(error)
+//         res.status(500).send('An error occurred while processing the PDF.')
+//       }
+//     } else {
+//       res.status(400).send('Invalid file type. Please upload a PDF.')
+//     }
+//   })
 
-  busboy.on('error', (error) => {
-    console.error('Busboy error:', error)
-  })
+//   busboy.on('error', (error) => {
+//     console.error('Busboy error:', error)
+//   })
 
-  busboy.on('finish', () => {
-    console.log('Busboy finished parsing form')
-  })
+//   busboy.on('finish', () => {
+//     console.log('Busboy finished parsing form')
+//   })
 
-  req.pipe(busboy)
-})
+//   req.pipe(busboy)
+// })
 
 module.exports = router
 
