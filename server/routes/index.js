@@ -27,10 +27,7 @@ router.post('/query', async function (req, res) {
   if (userid && text) {
     // Process the data as needed
     const embedding = await fetchEmbedding(text)
-    const searchResults = await searchTop5ClosestMatches(
-      embedding,
-      userid + '_collection',
-    )
+    const searchResults = await searchTop5ClosestMatches(embedding, userid)
     res.status(200).json({message: 'success', data: searchResults})
   } else {
     res.status(400).json({
