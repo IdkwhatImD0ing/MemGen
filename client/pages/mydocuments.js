@@ -39,18 +39,22 @@ export default function MyDocuments(props) {
 
   const [documents, setDocuments] = useState([])
 
+  const fetchDocuments = () => {
+    axios
+      .get('https://api.art3m1s.me/memgen/documents', {
+        params: {
+          userid: user.sub,
+        },
+      })
+      .then((res) => {
+        console.log(res)
+        setDocuments(res.data)
+      })
+  }
+
   useEffect(() => {
     if (user) {
-      axios
-        .get('https://api.art3m1s.me/memgen/documents', {
-          params: {
-            userid: user.sub,
-          },
-        })
-        .then((res) => {
-          console.log(res)
-          setDocuments(res.data)
-        })
+      fetchDocuments()
     }
   }, [user])
 
@@ -72,6 +76,7 @@ export default function MyDocuments(props) {
         uuid: id,
       })
       .then((res) => {
+        fetchDocuments()
         router.push('/mydocuments')
       })
   }
