@@ -1,10 +1,7 @@
 import {useUser} from '@auth0/nextjs-auth0/client'
-import Link from 'next/link'
 import Navbar from './components/Navbar'
-import Image from 'next/image'
 import {Inter, Montserrat} from 'next/font/google'
 import {useEffect, useState} from 'react'
-import axios from 'axios'
 import {getCoverLetter, generate} from '@/functions/axios'
 import {PacmanLoader} from 'react-spinners'
 import Typewriter from 'typewriter-effect'
@@ -12,11 +9,11 @@ import Typewriter from 'typewriter-effect'
 const montserrat = Montserrat({subsets: ['latin']})
 
 export default function HomePage() {
-  const {user, error} = useUser()
+  const {user} = useUser()
 
   useEffect(() => {
     if (!user) {
-      window.location.href = '/api/auth/login'
+      window.location.href = '/'
     }
   }, [user])
 
@@ -37,13 +34,7 @@ export default function HomePage() {
     setLoading(false)
     setLoading2(true)
     let finalString = generateInput.join(' ')
-
-    console.log(finalString)
-
     const generateres = await generate(user.sub, jobDescription, finalString)
-
-    console.log(generateres)
-
     setCoverletter(generateres.data.body.generations[0].text)
     setLoading2(false)
   }
@@ -51,8 +42,6 @@ export default function HomePage() {
   const CHUNK_SIZE = 50
 
   const chunks = coverletter.match(new RegExp(`.{1,${CHUNK_SIZE}}`, 'g'))
-
-  if (error) return <div>{error.message}</div>
 
   if (user) {
     return (

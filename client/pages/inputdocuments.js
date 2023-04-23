@@ -7,11 +7,11 @@ import {inputDocument} from '@/functions/axios'
 const montserrat = Montserrat({subsets: ['latin']})
 
 export default function InputDocuments() {
-  const {user, error} = useUser()
+  const {user} = useUser()
 
   useEffect(() => {
     if (!user) {
-      window.location.href = '/api/auth/login'
+      window.location.href = '/'
     }
   }, [user])
 
@@ -24,8 +24,6 @@ export default function InputDocuments() {
     e.preventDefault()
     await inputDocument(user.sub, jobDescription)
   }
-
-  if (error) return <div>{error.message}</div>
 
   if (user) {
     return (

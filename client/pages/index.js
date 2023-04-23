@@ -1,5 +1,3 @@
-import Image from 'next/image'
-import {useUser} from '@auth0/nextjs-auth0/client'
 import {Inter, Montserrat} from 'next/font/google'
 import Navbar from './components/Navbar'
 import LandingPage from './components/LandingPage'
