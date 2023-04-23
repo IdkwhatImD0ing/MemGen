@@ -1,4 +1,4 @@
-# 🤖 MemGen: Intelligent Vector-Based Resume & Cover Letter Creator
+# 🤖 MemGen: Intelligent Vector-Based Cover Letter Creator
 
 Cohere compiles customized content, converging career chronicles and capacities.
 
