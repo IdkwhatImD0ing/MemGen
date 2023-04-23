@@ -1,4 +1,7 @@
-# 🤖 MemGen: Cohere compiles customized content, converging career chronicles and capacities.
+# 🤖 MemGen: Intelligent Vector-Based Resume & Cover Letter Creator
+
+Cohere compiles customized content, converging career chronicles and capacities.
+
 _Allowing users to generate custom cover letters and resumes using large language models and embeddings._
 
 ## Overview
