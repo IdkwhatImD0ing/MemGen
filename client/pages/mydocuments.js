@@ -4,12 +4,32 @@ import Link from 'next/link'
 import {useEffect, useState} from 'react'
 import axios from 'axios'
 import {useRouter} from 'next/router'
+import Modal from 'react-modal'
 
 const montserrat = Montserrat({subsets: ['latin']})
+
+Modal.setAppElement('#__next')
 
 export default function MyDocuments(props) {
   const {user} = useUser()
   const router = useRouter()
+
+  const [modalIsOpen, setModalIsOpen] = useState(false)
+  const [documentToDelete, setDocumentToDelete] = useState(null)
+
+  const openModal = (id) => {
+    setDocumentToDelete(id)
+    setModalIsOpen(true)
+  }
+
+  const closeModal = () => {
+    setModalIsOpen(false)
+  }
+
+  const confirmDelete = () => {
+    handleDelete(documentToDelete)
+    closeModal()
+  }
 
   useEffect(() => {
     if (!user) {
@@ -83,12 +103,11 @@ export default function MyDocuments(props) {
                 Back
               </button>
               <button
-                onClick={() => handleDelete(selectedDocument.id)}
+                onClick={() => openModal(selectedDocument.id)}
                 className="bg-red-500 text-white p-2 rounded-md mb-4 ml-4"
               >
                 Delete
               </button>
-
               <p>{selectedDocument.text}</p>
             </div>
           </div>
@@ -116,6 +135,29 @@ export default function MyDocuments(props) {
           </div>
         )}
       </div>
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        className="w-1/3 mx-auto mt-24 bg-slate-700 p-6 rounded-md"
+        overlayClassName="fixed inset-0 bg-gray-800 bg-opacity-50"
+      >
+        <h2 className="text-xl font-bold mb-4">Confirm Delete</h2>
+        <p>Are you sure you want to delete this document?</p>
+        <div className="flex justify-end mt-6">
+          <button
+            onClick={confirmDelete}
+            className="bg-red-500 text-white px-4 py-2 rounded-md mr-2"
+          >
+            Delete
+          </button>
+          <button
+            onClick={closeModal}
+            className="bg-gray-500 text-white px-4 py-2 rounded-md"
+          >
+            Cancel
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }
