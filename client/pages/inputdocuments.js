@@ -31,7 +31,6 @@ export default function InputDocuments() {
     const FD = new FormData()
     FD.append('pdf', file) // Append the file to the FormData object with the desired field name, in this case "file_upload"
     setFormData(FD)
-    console.log('FD', FD)
 
     // Make the Axios POST request with the FormData object as the data
   }
@@ -40,13 +39,11 @@ export default function InputDocuments() {
     try {
       let text = null
       if (formData != null) {
-        console.log('Check')
         setLoading(1)
         setLoadingMessage(
           "Converting PDF to text, please don't navigate away. This can take up to one minute.",
         )
         text = await convertPDF(formData)
-        console.log(text)
       }
       setLoading(1)
       setLoadingMessage(
@@ -58,7 +55,6 @@ export default function InputDocuments() {
           userid: user.sub,
         })
         .then((res) => {
-          console.log(res)
           setLoading(2)
           setLoadingMessage('Embedding summary into vector database.')
           inputDocument(user.sub, res.data.data.body.generations[0].text).then(
@@ -109,7 +105,7 @@ export default function InputDocuments() {
               </button>
             </form>
             {loading !== 0 && (
-              <div className="absolute w-screen h-screen bg-black bg-opacity-70 flex flex-col items-center justify-center overflow-y-hidden">
+              <div className="absolute top-0 w-screen h-screen bg-black bg-opacity-70 flex flex-col items-center justify-center overflow-y-hidden">
                 <CircularProgress />
                 <p className="mt-4">{loadingMessage}</p>
               </div>

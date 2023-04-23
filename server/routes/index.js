@@ -219,10 +219,14 @@ router.post('/generate', async function (req, res) {
     }
 
     if (text && description) {
-      const prompt = `Write a cover letter that matches the job description and utilizes the previous experiences provided:
-Job description: ${description}
-Previous experiences: ${text}
-`
+      const prompt = `
+      [Start Previous Experiences]
+      ${text}
+      [End Previous Experiences]
+      [Start Job Description]
+       ${description}
+      [End Job Description]
+      Write a cover letter that matches the job description and utilizes the previous experiences provided.`
       const response = await cohere.generate({
         model: 'command-xlarge-nightly',
         prompt: prompt,
@@ -231,7 +235,7 @@ Previous experiences: ${text}
         k: 0,
         stop_sequences: [],
         return_likelihoods: 'NONE',
-        truncate: 'END',
+        truncate: 'START',
       })
 
       // Decrease credits by 1
@@ -267,7 +271,7 @@ router.post('/summarize', async function (req, res) {
       const response = await cohere.generate({
         model: 'command-xlarge-nightly',
         prompt: prompt,
-        max_tokens: 2x000,
+        max_tokens: 2000,
         temperature: 0.9,
         k: 0,
         stop_sequences: [],
