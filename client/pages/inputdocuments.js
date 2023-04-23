@@ -1,37 +1,35 @@
-import { useUser } from "@auth0/nextjs-auth0/client";
-import Link from "next/link";
-import Image from "next/image";
-import Navbar2 from "./components/Navbar2";
-import { Inter, Montserrat } from "next/font/google";
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { inputDocument } from "@/functions/axios";
+import {useUser} from '@auth0/nextjs-auth0/client'
+import Link from 'next/link'
+import Image from 'next/image'
+import Navbar2 from './components/Navbar2'
+import {Inter, Montserrat} from 'next/font/google'
+import {useEffect, useState} from 'react'
+import axios from 'axios'
+import {inputDocument} from '@/functions/axios'
 
-const montserrat = Montserrat({ subsets: ["latin"] });
+const montserrat = Montserrat({subsets: ['latin']})
 
 export default function InputDocuments() {
-  const { user, error, isLoading } = useUser();
+  const {user, error, isLoading} = useUser()
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>{error.message}</div>;
+  if (isLoading) return <div>Loading...</div>
+  if (error) return <div>{error.message}</div>
 
   useEffect(() => {
     if (!user) {
-      window.location.href = "/api/auth/login";
+      window.location.href = '/api/auth/login'
     }
-  }, [user]);
+  }, [user])
 
-  const [jobDescription, setJobDescription] = useState("");
-  const [coverletter, setCoverletter] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [loading2, setLoading2] = useState(false);
+  const [jobDescription, setJobDescription] = useState('')
+  const [coverletter, setCoverletter] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [loading2, setLoading2] = useState(false)
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    await inputDocument(user.sub, jobDescription);
-    alert("done");
-    //setJobDescription(res);
-  };
+    e.preventDefault()
+    await inputDocument(user.sub, jobDescription)
+  }
 
   if (user) {
     return (
@@ -66,6 +64,6 @@ export default function InputDocuments() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 }

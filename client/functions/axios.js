@@ -1,39 +1,42 @@
-import axios from "axios";
+import axios from 'axios'
 
 const inputDocument = (userid, text) => {
   axios
-    .post("http://localhost:3000/add", {
+    .post('https://api.art3m1s.me/memgen/add', {
       userid: userid,
       text: text,
     })
     .then((res) => {
-      return res;
-    });
-};
+      return res
+    })
+}
 
 const getCoverLetter = async (userid, text) => {
   try {
-    const response = await axios.post("http://localhost:3000/query", {
+    const response = await axios.post('https://api.art3m1s.me/memgen/query', {
       userid: userid,
       text: text,
-    });
-    return response.data;
+    })
+    return response.data
   } catch (error) {
-    console.error(error);
+    console.error(error)
   }
-};
+}
 
 const generate = async (userid, description, text) => {
   try {
-    const response = await axios.post("http://localhost:3000/generate", {
-      userid: userid,
-      description: description,
-      text: text,
-    });
-    return response.data;
+    const response = await axios.post(
+      'https://api.art3m1s.me/memgen/generate',
+      {
+        userid: userid,
+        description: description,
+        text: text,
+      },
+    )
+    return response.data
   } catch (e) {
-    console.log(error);
+    console.log(error)
   }
-};
+}
 
-export { inputDocument, getCoverLetter, generate };
+export {inputDocument, getCoverLetter, generate}
