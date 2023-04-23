@@ -259,7 +259,7 @@ router.post('/upload', upload.single('pdf'), async (req, res) => {
 })
 
 router.post('/signup', async (req, res) => {
-  const {userid, secretkey} = req.body
+  const {userid, secretkey, email} = req.body
 
   if (secretkey != process.env.SECRET_KEY) {
     return res.status(401).send('Unauthorized')
@@ -277,6 +277,7 @@ router.post('/signup', async (req, res) => {
     await document.set({
       tier: 'User',
       credits: 5,
+      email: email,
     })
 
     res.status(200).send('User successfully created')

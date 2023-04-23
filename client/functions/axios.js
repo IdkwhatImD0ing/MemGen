@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const inputDocument = (userid, text) => {
   axios
-    .post('http://localhost:4004/add', {
+    .post('https://api.art3m1s.me/memgen/add', {
       userid: userid,
       text: text,
     })
@@ -13,7 +13,7 @@ const inputDocument = (userid, text) => {
 
 const getCoverLetter = async (userid, text) => {
   try {
-    const response = await axios.post('http://localhost:4004/query', {
+    const response = await axios.post('https://api.art3m1s.me/memgen/query', {
       userid: userid,
       text: text,
     })
@@ -25,11 +25,14 @@ const getCoverLetter = async (userid, text) => {
 
 const generate = async (userid, description, text) => {
   try {
-    const response = await axios.post('http://localhost:4004/generate', {
-      userid: userid,
-      description: description,
-      text: text,
-    })
+    const response = await axios.post(
+      'https://api.art3m1s.me/memgen/generate',
+      {
+        userid: userid,
+        description: description,
+        text: text,
+      },
+    )
     return response.data
   } catch (e) {
     console.log(error)
