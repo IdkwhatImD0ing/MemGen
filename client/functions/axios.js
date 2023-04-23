@@ -4,11 +4,13 @@ const url = [
   "https://api.art3m1s.me/memgen/add",
   "https://api.art3m1s.me/memgen/query",
   "https://api.art3m1s.me/memgen/generate",
+  "https://api.art3m1s.me/memgen/upload"
 ];
 const localhost = [
   "http://localhost:4004/add",
   "http://localhost:4004/query",
   "http://localhost:4004/generate",
+  "http://localhost:4004/upload"
 ];
 
 let local = false;
