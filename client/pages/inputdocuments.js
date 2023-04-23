@@ -1,5 +1,4 @@
 import {useUser} from '@auth0/nextjs-auth0/client'
-import Navbar from './components/Navbar'
 import {Inter, Montserrat} from 'next/font/google'
 import {useEffect, useState} from 'react'
 import {inputDocument} from '@/functions/axios'
@@ -30,7 +29,6 @@ export default function InputDocuments() {
       <div
         className={`bg-black text-white min-h-screen px-10 py-2 ${montserrat.className}`}
       >
-        <Navbar />
         <div className="flex flex-col gap-8 items-center justify-center">
           <h1 className="text-3xl font-bold mt-10">{`Let's get to know ${user.name}.`}</h1>
           <div className="flex w-screen min-h-full">
@@ -39,12 +37,11 @@ export default function InputDocuments() {
               className="w-screen flex flex-col justify-center items-center gap-8"
             >
               <div className="w-screen flex justify-center items-center gap-4">
-                <input
-                  type="text"
+                <textarea
                   placeholder="Side projects, previous work roles, technical experiences..."
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
-                  className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 overflow-visible outline-none"
+                  className="text-white bg-slate-700 p-4 rounded-md w-[35%] h-80 overflow-y-auto outline-none resize-none"
                 />
               </div>
 

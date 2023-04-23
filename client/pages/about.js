@@ -1,6 +1,5 @@
 import {motion} from 'framer-motion'
 import Contributor from './components/Contributor'
-import Navbar from './components/Navbar'
 import {Montserrat} from 'next/font/google'
 
 const montserrat = Montserrat({subsets: ['latin']})
@@ -39,7 +38,6 @@ export default function About() {
 
   return (
     <div className={`bg-black min-h-screen px-10 py-2 ${montserrat.className}`}>
-      <Navbar />
       <section className=" w-full flex flex-col justify-center items-center text-center cursor-default">
         <div className="text-white flex flex-col items-center">
           <motion.div

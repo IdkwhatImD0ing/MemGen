@@ -6,7 +6,7 @@ export default function Navbar() {
   const {user} = useUser()
 
   return (
-    <nav className="flex text-white items-center justify-center">
+    <nav className="fixed pl-8 pr-8 top-0 w-full bg-black flex text-white items-center justify-center">
       <Link href="/" className="mr-auto">
         <Image src="/memgen.svg" alt="logo" width={200} height={200} />
       </Link>
@@ -16,7 +16,7 @@ export default function Navbar() {
             href="/inputdocuments"
             className="px-4 py-2 hover:bg-slate-700 rounded-md"
           >
-            Document
+            Upload Document
           </Link>
           <Link
             href="/homepage"

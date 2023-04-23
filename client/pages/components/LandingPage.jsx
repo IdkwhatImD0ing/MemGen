@@ -7,7 +7,10 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="flex items-center min-h-screen gap-6 text-white px-20">
+    <div
+      className="flex items-center min-h-screen gap-6 text-white px-20"
+      style={{overflowY: 'hidden', height: '100vh'}}
+    >
       <div>
         <div className="flex flex-col gap-4">
           <div className="font-bold text-8xl">Where Careers</div>
