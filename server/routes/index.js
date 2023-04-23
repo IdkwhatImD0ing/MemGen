@@ -41,7 +41,7 @@ router.get('/', function (req, res) {
 })
 
 router.post('/add', async function (req, res) {
-  const {userid, text} = req.body
+  const {userid, text, collection} = req.body
   const embedding = await fetchEmbedding(text)
   const uuid = uuidv4()
 
@@ -56,7 +56,7 @@ router.post('/add', async function (req, res) {
     })
 
     const data = {
-      collection_name: 'Resume',
+      collection_name: collection,
       fields_data: [
         {
           uuid: uuid,
@@ -85,12 +85,12 @@ router.post('/add', async function (req, res) {
 
 /* POST route to handle JSON input */
 router.post('/query', async function (req, res) {
-  const {userid, text} = req.body
+  const {userid, text, collection} = req.body
 
   if (userid && text) {
     // Reload collection
     await milvusClient.loadCollection({
-      collection_name: 'Resume',
+      collection_name: collection,
     })
 
     // Process the data as needed
@@ -102,7 +102,7 @@ router.post('/query', async function (req, res) {
       params: JSON.stringify({nprobe: 1024}),
     }
     const searchReq = {
-      collection_name: 'Resume',
+      collection_name: collection,
       vectors: [embedding],
       search_params: searchParams,
       vector_type: DataType.FloatVector,
@@ -136,7 +136,7 @@ router.post('/query', async function (req, res) {
   }
 })
 
-router.post('/generate', async function (req, res) {
+router.post('/generate/resume', async function (req, res) {
   const {userid, description, text} = req.body
 
   //Search user collection, "Account" docs, credits to see if they have enough credits
@@ -160,6 +160,60 @@ router.post('/generate', async function (req, res) {
 Previous experiences: ${text}
 
 Write a cover letter that matches the job description and utilizes the previous experiences provided:
+`
+      const response = await cohere.generate({
+        model: 'command-xlarge-nightly',
+        prompt: prompt,
+        max_tokens: 2000,
+        temperature: 0.8,
+        k: 0,
+        stop_sequences: [],
+        return_likelihoods: 'NONE',
+      })
+      //Decrease credits by 1
+      if (tier != "Admin"){
+        await document.update({
+          credits: credits - 1,
+          tier: tier,
+        })
+      }
+      res.status(200).json({message: 'success', data: response})
+    } catch (error) {
+      res.status(500).json({
+        message: 'An error occurred while processing your request.',
+        error: error.message,
+      })
+    }
+  } else {
+    res.status(400).json({
+      message:
+        'Bad request. Please provide a JSON string in the "jsonPrompt" field.',
+    })
+  }
+})
+
+router.post('/generate/material', async function (req, res) {
+  const {userid, material, question} = req.body
+
+  //Search user collection, "Account" docs, credits to see if they have enough credits
+  const userCollection = defaultDatabase.collection(userid)
+  const document = userCollection.doc('Account')
+  const doc = await document.get()
+  const data = doc.data()
+  const credits = data.credits
+    const tier = data.tier
+
+  if (credits < 1 && tier != "Admin") {
+    res.status(400).json({
+      message:
+        'Bad request. You do not have enough credits to generate a cover letter.',
+    })
+  }
+
+  if (material && question) {
+    try {
+      const prompt = `Answer this Question: ${question}
+Using this material ${material}
 `
       const response = await cohere.generate({
         model: 'command-xlarge-nightly',
