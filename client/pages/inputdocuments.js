@@ -1,7 +1,7 @@
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Inter, Montserrat } from "next/font/google";
 import { useEffect, useState } from "react";
-import { inputDocument, uploadDocument } from "@/functions/axios";
+import { inputDocument, convertPDF } from "@/functions/axios";
 import Alert from "@mui/material/Alert";
 
 const montserrat = Montserrat({ subsets: ["latin"] });
@@ -15,15 +15,7 @@ export default function InputDocuments() {
     }
   }, [user]);
 
-  const changeHandler = (event) => {
-    const file = event.target.files[0]; // Get the first file from the file input
 
-    // Create a FormData object
-    const formData = new FormData();
-    formData.append("pdf", file); // Append the file to the FormData object with the desired field name, in this case "file_upload"
-
-    // Make the Axios POST request with the FormData object as the data
-  };
 
   const [jobDescription, setJobDescription] = useState("");
   const [coverletter, setCoverletter] = useState("");
@@ -32,19 +24,29 @@ export default function InputDocuments() {
   const [filename, setFileName] = useState("");
   const [textEnabled, setTextEnabled] = useState(true);
   const [formData, setFormData] = useState(null);
+  const changeHandler = (event) => {
+    const file = event.target.files[0]; // Get the first file from the file input
 
+    // Create a FormData object
+    const FD = new FormData();
+    FD.append("pdf", file); // Append the file to the FormData object with the desired field name, in this case "file_upload"
+    setFormData(FD);
+    console.log("FD", FD)
+
+    // Make the Axios POST request with the FormData object as the data
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (filename) {
-      const text = await uploadDocument(formData);
+    console.log(formData);
+    
+    if (formData != null) {
+      console.log("Check");
+      const text = await convertPDF(formData);
       console.log(text);
       await inputDocument(user.sub, text);
     } else {
       await inputDocument(user.sub, jobDescription);
     }
-
-    alert("worked");
     return <Alert severity="success">Successfully added!</Alert>;
   };
 

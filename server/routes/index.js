@@ -266,7 +266,7 @@ router.post('/upload', upload.single('pdf'), async (req, res) => {
     const pdfData = await pdfParse(pdfBuffer)
     res.send(pdfData.text)
   } catch (error) {
-    console.error('Error processing PDF:', error)
+    //console.error('Error processing PDF:', error)
     res.status(500).send('Error processing PDF')
   }
 })

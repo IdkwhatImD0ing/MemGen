@@ -56,4 +56,14 @@ const generate = async (userid, description, text) => {
   }
 }
 
-export {inputDocument, getCoverLetter, generate}
+const convertPDF = async (file) => {
+  try {
+    const response = await axios.post(finalurl[3], {
+      file,
+    })
+    return response.data
+  } catch (e) {
+    console.log(e)
+  }
+}
+export {inputDocument, getCoverLetter, generate, convertPDF}
