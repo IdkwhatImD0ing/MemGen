@@ -14,9 +14,6 @@ const montserrat = Montserrat({subsets: ['latin']})
 export default function HomePage() {
   const {user, error, isLoading} = useUser()
 
-  if (isLoading) return <div>Loading...</div>
-  if (error) return <div>{error.message}</div>
-
   useEffect(() => {
     if (!user) {
       window.location.href = '/api/auth/login'
@@ -54,6 +51,9 @@ export default function HomePage() {
   const CHUNK_SIZE = 50
 
   const chunks = coverletter.match(new RegExp(`.{1,${CHUNK_SIZE}}`, 'g'))
+
+  if (isLoading) return <div>Loading...</div>
+  if (error) return <div>{error.message}</div>
 
   if (user) {
     return (
