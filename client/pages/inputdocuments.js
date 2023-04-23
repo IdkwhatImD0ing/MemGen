@@ -4,28 +4,33 @@ import { useEffect, useState } from "react";
 import { inputDocument, convertPDF } from "@/functions/axios";
 import Alert from "@mui/material/Alert";
 
-const montserrat = Montserrat({ subsets: ["latin"] });
+const montserrat = Montserrat({subsets: ['latin']})
 
 export default function InputDocuments() {
-  const { user } = useUser();
+  const {user} = useUser()
 
   useEffect(() => {
     if (!user) {
-      window.location.href = "/";
+      window.location.href = '/'
     }
-  }, [user]);
+  }, [user])
 
-
-
-  const [jobDescription, setJobDescription] = useState("");
-  const [coverletter, setCoverletter] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [loading2, setLoading2] = useState(false);
-  const [filename, setFileName] = useState("");
-  const [textEnabled, setTextEnabled] = useState(true);
-  const [formData, setFormData] = useState(null);
   const changeHandler = (event) => {
-    const file = event.target.files[0]; // Get the first file from the file input
+    const file = event.target.files[0] // Get the first file from the file input
+
+    // Create a FormData object
+    const formData = new FormData()
+    formData.append('pdf', file) // Append the file to the FormData object with the desired field name, in this case "file_upload"
+
+    // Make the Axios POST request with the FormData object as the data
+  }
+
+  const [jobDescription, setJobDescription] = useState('')
+  const [loading, setLoading] = useState(0)
+  const [loadingMessage, setLoadingMessage] = useState('')
+  const [filename, setFileName] = useState('')
+  const [textEnabled, setTextEnabled] = useState(true)
+  const [formData, setFormData] = useState(null)
 
     // Create a FormData object
     const FD = new FormData();
@@ -36,24 +41,40 @@ export default function InputDocuments() {
     // Make the Axios POST request with the FormData object as the data
   };
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log(formData);
-    
-    if (formData != null) {
-      console.log("Check");
-      const text = await convertPDF(formData);
-      console.log(text);
-      await inputDocument(user.sub, text);
-    } else {
-      await inputDocument(user.sub, jobDescription);
-    }
-    return <Alert severity="success">Successfully added!</Alert>;
-  };
+    e.preventDefault()
+    try {
+      if (filename) {
+        setLoading(1)
+        setLoadingMessage('Parsing PDF...')
+        const text = await uploadDocument(formData)
+      }
+      setLoading(1)
+      setLoadingMessage(
+        "Summarizing your text, please don't navigate away. This can take up to one minute...",
+      )
+      axios
+        .post('https://api.art3m1s.me/memgen/summarize', {
+          text: text ? text : jobDescription,
+          userid: user.sub,
+        })
+        .then((res) => {
+          setLoading(2)
+          setLoadingMessage('Embedding summary into vector database...')
+          inputDocument(user.sub, res.data.data.body.generations[0].text).then(
+            (res) => {
+              setLoading(0)
+              setLoadingMessage('')
+              setJobDescription('')
+            },
+          )
+        })
+    } catch (error) {}
+  }
 
   if (user) {
     return (
       <div
-        className={`bg-black text-white min-h-screen px-10 py-2 ${montserrat.className}`}
+        className={`bg-black text-white min-h-screen px-10 py-2 overflow-hidden ${montserrat.className}`}
       >
         <div className="flex flex-col gap-8 items-center justify-center">
           <h1 className="text-3xl font-bold mt-10">{`Let's get to know ${user.name}.`}</h1>
@@ -63,16 +84,14 @@ export default function InputDocuments() {
               className="w-screen flex flex-col justify-center items-center gap-8"
             >
               <div className="w-screen flex flex-row justify-center items-center gap-4 text-white">
-                <label className='className="px-6 py-2 text-white justify-center  hover:scale-105 active:scale-95 w-[35%] h-80 rounded-xl font-semibold border-4  border-dashed "'>
-                  <span class="flex items-center space-x-2 mx-5">
-                    UploadPDF
-                  </span>
-                  <p className="mx-5">{filename}</p>
+                <label className="px-6 py-2 text-white justify-center hover:scale-105 active:scale-95 w-[35%] h-80 rounded-xl font-semibold border-4 border-dashed flex flex-col items-center">
+                  <span className="flex items-center space-x-2">UploadPDF</span>
+                  <p>{filename}</p>
 
                   <input
                     type="file"
                     name="file_upload"
-                    class="hidden"
+                    className="hidden"
                     onChange={changeHandler}
                   />
                 </label>
@@ -82,7 +101,7 @@ export default function InputDocuments() {
                   placeholder="Side projects, previous work roles, technical experiences..."
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
-                  className=" bg-slate-700 p-4 rounded-md w-[35%] h-80 overflow-y-auto outline-none resize-none"
+                  className="bg-slate-700 p-4 rounded-md w-[35%] h-80 overflow-y-auto outline-none resize-none"
                   disabled={!textEnabled}
                 />
               </div>
@@ -94,9 +113,15 @@ export default function InputDocuments() {
                 Teach MemGen
               </button>
             </form>
+            {loading !== 0 && (
+              <div className="absolute w-screen h-screen bg-black bg-opacity-70 flex flex-col items-center justify-center">
+                <CircularProgress />
+                <p className="mt-4">{loadingMessage}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    );
+    )
   }
 }

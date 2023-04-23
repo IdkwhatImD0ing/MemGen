@@ -233,6 +233,7 @@ Previous experiences: ${text}
         return_likelihoods: 'NONE',
         truncate: 'END',
       })
+
       // Decrease credits by 1
       if (tier != 'Admin') {
         await document.update({
@@ -248,6 +249,40 @@ Previous experiences: ${text}
       })
     }
   } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      message: 'An error occurred while processing your request.',
+      error: error.message,
+    })
+  }
+})
+
+router.post('/summarize', async function (req, res) {
+  try {
+    const {userid, text} = req.body
+    if (text && userid) {
+      const prompt = `Summarize this project in three detailed paragraphs, emphasizing the technical and programming skills used.
+       ${text}`
+      const response = await cohere.generate({
+        model: 'command-xlarge-nightly',
+        prompt: prompt,
+        max_tokens: 3000,
+        temperature: 0.9,
+        k: 0,
+        stop_sequences: [],
+        return_likelihoods: 'NONE',
+        truncate: 'END',
+      })
+
+      res.status(200).json({message: 'success', data: response})
+    } else {
+      res.status(400).json({
+        message:
+          'Bad request. Please provide a JSON string in the "jsonPrompt" field.',
+      })
+    }
+  } catch (error) {
+    console.log(error)
     res.status(500).json({
       message: 'An error occurred while processing your request.',
       error: error.message,
