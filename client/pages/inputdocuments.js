@@ -17,6 +17,16 @@ export default function InputDocuments() {
     }
   }, [user])
 
+  const changeHandler = (event) => {
+    const file = event.target.files[0] // Get the first file from the file input
+
+    // Create a FormData object
+    const formData = new FormData()
+    formData.append('pdf', file) // Append the file to the FormData object with the desired field name, in this case "file_upload"
+
+    // Make the Axios POST request with the FormData object as the data
+  }
+
   const [jobDescription, setJobDescription] = useState('')
   const [loading, setLoading] = useState(0)
   const [loadingMessage, setLoadingMessage] = useState('')
@@ -59,12 +69,28 @@ export default function InputDocuments() {
               onSubmit={handleSubmit}
               className="w-screen flex flex-col justify-center items-center gap-8"
             >
-              <div className="w-screen flex justify-center items-center gap-4">
+              <div className="w-screen flex flex-row justify-center items-center gap-4 text-white">
+                <label className='className="px-6 py-2 text-white justify-center  hover:scale-105 active:scale-95 w-[35%] h-80 rounded-xl font-semibold border-4  border-dashed "'>
+                  <span class="flex items-center space-x-2 mx-5">
+                    UploadPDF
+                  </span>
+                  <p className="mx-5">{filename}</p>
+
+                  <input
+                    type="file"
+                    name="file_upload"
+                    class="hidden"
+                    onChange={changeHandler}
+                  />
+                </label>
+
+                <p className="text-lg font-semibold">or</p>
                 <textarea
                   placeholder="Side projects, previous work roles, technical experiences..."
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
-                  className="text-white bg-slate-700 p-4 rounded-md w-[35%] h-80 overflow-y-auto outline-none resize-none"
+                  className=" bg-slate-700 p-4 rounded-md w-[35%] h-80 overflow-y-auto outline-none resize-none"
+                  disabled={!textEnabled}
                 />
               </div>
 
