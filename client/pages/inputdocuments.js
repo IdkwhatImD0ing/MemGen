@@ -1,35 +1,52 @@
-import {useUser} from '@auth0/nextjs-auth0/client'
-import {Inter, Montserrat} from 'next/font/google'
-import {useEffect, useState} from 'react'
-import {inputDocument} from '@/functions/axios'
-import Alert from '@mui/material/Alert';
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Inter, Montserrat } from "next/font/google";
+import { useEffect, useState } from "react";
+import { inputDocument, uploadDocument } from "@/functions/axios";
+import Alert from "@mui/material/Alert";
 
-const montserrat = Montserrat({subsets: ['latin']})
+const montserrat = Montserrat({ subsets: ["latin"] });
 
 export default function InputDocuments() {
-  const {user} = useUser()
+  const { user } = useUser();
 
   useEffect(() => {
     if (!user) {
-      window.location.href = '/'
+      window.location.href = "/";
     }
-  }, [user])
+  }, [user]);
 
-  const [jobDescription, setJobDescription] = useState('')
-  const [coverletter, setCoverletter] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [loading2, setLoading2] = useState(false)
+  const changeHandler = (event) => {
+    const file = event.target.files[0]; // Get the first file from the file input
+
+    // Create a FormData object
+    const formData = new FormData();
+    formData.append("pdf", file); // Append the file to the FormData object with the desired field name, in this case "file_upload"
+
+    // Make the Axios POST request with the FormData object as the data
+  };
+
+  const [jobDescription, setJobDescription] = useState("");
+  const [coverletter, setCoverletter] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loading2, setLoading2] = useState(false);
+  const [filename, setFileName] = useState("");
+  const [textEnabled, setTextEnabled] = useState(true);
+  const [formData, setFormData] = useState(null);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    try{
-      await inputDocument(user.sub, jobDescription)
-      return <Alert severity="success">Successfully added!</Alert>
-    }catch(error){
-      return <Alert severity="error">{error}</Alert>
+    e.preventDefault();
+
+    if (filename) {
+      const text = await uploadDocument(formData);
+      console.log(text);
+      await inputDocument(user.sub, text);
+    } else {
+      await inputDocument(user.sub, jobDescription);
     }
-    
-  }
+
+    alert("worked");
+    return <Alert severity="success">Successfully added!</Alert>;
+  };
 
   if (user) {
     return (
@@ -43,12 +60,28 @@ export default function InputDocuments() {
               onSubmit={handleSubmit}
               className="w-screen flex flex-col justify-center items-center gap-8"
             >
-              <div className="w-screen flex justify-center items-center gap-4">
+              <div className="w-screen flex flex-row justify-center items-center gap-4 text-white">
+                <label className='className="px-6 py-2 text-white justify-center  hover:scale-105 active:scale-95 w-[35%] h-80 rounded-xl font-semibold border-4  border-dashed "'>
+                  <span class="flex items-center space-x-2 mx-5">
+                    UploadPDF
+                  </span>
+                  <p className="mx-5">{filename}</p>
+
+                  <input
+                    type="file"
+                    name="file_upload"
+                    class="hidden"
+                    onChange={changeHandler}
+                  />
+                </label>
+
+                <p className="text-lg font-semibold">or</p>
                 <textarea
                   placeholder="Side projects, previous work roles, technical experiences..."
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
-                  className="text-white bg-slate-700 p-4 rounded-md w-[35%] h-80 overflow-y-auto outline-none resize-none"
+                  className=" bg-slate-700 p-4 rounded-md w-[35%] h-80 overflow-y-auto outline-none resize-none"
+                  disabled={!textEnabled}
                 />
               </div>
 
@@ -62,6 +95,6 @@ export default function InputDocuments() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 }
