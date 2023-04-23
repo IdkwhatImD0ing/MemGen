@@ -1,4 +1,4 @@
-# 🤖 MemGen: Intelligent Vector-Based Cover Letter Creator
+# MemGen: Intelligent Vector-Based Cover Letter Creator
 
 MemGen is a platform that intelligently compiles customized content, converging career chronicles and capacities, allowing users to generate custom cover letters and resumes using large language models and embeddings.
 
