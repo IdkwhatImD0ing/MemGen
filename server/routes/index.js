@@ -1,13 +1,13 @@
 var express = require('express')
 var router = express.Router()
-const firebaseConfig = require('/usr/src/app/firebase.json')
+const firebaseConfig = require('../firebase.json')
 const {Configuration, OpenAIApi} = require('openai')
 const multer = require('multer')
 const pdfParse = require('pdf-parse')
 const upload = multer({storage: multer.memoryStorage()})
 const axios = require('axios')
 const {MilvusClient, DataType, MetricType} = require('@zilliz/milvus2-sdk-node')
-const config = require('/usr/src/app/config.js')
+const config = require('../config.js')
 const {uri, user, password, secure} = config
 const path = require('path')
 const milvusClient = new MilvusClient(uri, secure, user, password, secure)
@@ -33,10 +33,7 @@ const cohere = require('cohere-ai')
 cohere.init(process.env.COHERE_API_KEY)
 
 // Authentication
-const jwt = require('express-jwt')
-const jwksRsa = require('jwks-rsa')
-
-const jwt = require('express-jwt')
+var {expressjwt: jwt} = require('express-jwt')
 const jwksRsa = require('jwks-rsa')
 
 // Middleware for validating access tokens
@@ -139,6 +136,22 @@ router.post('/delete', async function (req, res) {
   }
 })
 
+router.get('/documents', async function (req, res) {
+  const {userid} = req.params
+
+  // Get the user's collection
+  const userCollection = defaultDatabase.collection(userid)
+
+  // Get all the documents in the collection
+  const documents = await userCollection.get()
+
+  // Filter the documents to remove the one with name Account
+  const filteredDocuments = documents.filter((doc) => doc.id !== 'Account')
+
+  // Return the filtered documents
+  res.status(200).json(filteredDocuments)
+})
+
 /* POST route to handle JSON input */
 router.post('/query', async function (req, res) {
   const {userid, text} = req.body
@@ -204,9 +217,8 @@ router.post('/generate', async function (req, res) {
   const tier = data.tier
 
   if (credits < 1 && tier != 'Admin') {
-    res.status(400).json({
-      message:
-        'Bad request. You do not have enough credits to generate a cover letter.',
+    res.status(402).json({
+      message: 'You do not have enough credits to generate a cover letter.',
     })
   }
 
