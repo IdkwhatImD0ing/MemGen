@@ -85,7 +85,7 @@ export default function InputDocuments() {
                   <input
                     type="file"
                     name="file_upload"
-                    class="hidden"
+                    className="hidden"
                     onChange={changeHandler}
                   />
                 </label>

@@ -1,9 +1,9 @@
 import {useUser} from '@auth0/nextjs-auth0/client'
 import {Inter, Montserrat} from 'next/font/google'
+import React from 'react'
 import {useEffect, useState} from 'react'
 import {getCoverLetter, generate} from '@/functions/axios'
 import {PacmanLoader} from 'react-spinners'
-import Typewriter from 'typewriter-effect'
 
 const montserrat = Montserrat({subsets: ['latin']})
 
@@ -33,16 +33,11 @@ export default function HomePage() {
     setLoading(false)
     setLoading2(true)
     let finalString = generateInput.join(' ')
-    console.log(jobDescription, finalString)
+
     const generateres = await generate(user.sub, jobDescription, finalString)
-    console.log(generateres.data.body.generations[0].text)
-    setCoverletter(generateres.data.body.generations[0].text)
+    setCoverletter(generateres.data)
     setLoading2(false)
   }
-
-  const CHUNK_SIZE = 50
-
-  const chunks = coverletter.match(new RegExp(`.{1,${CHUNK_SIZE}}`, 'g'))
 
   if (user) {
     return (
@@ -89,19 +84,8 @@ export default function HomePage() {
                     <p>Generating your cover letter...</p>
                   </div>
                 ) : (
-                  <div className="text-white bg-slate-700 p-4 w-[35%] max-w-[35%] min-h-[100%] rounded-md overflow-y-auto">
-                    <Typewriter
-                      onInit={(typewriter) => {
-                        typewriter
-                          .pauseFor(0)
-                          .changeDelay(5)
-                          .typeString(coverletter[0])
-                          .start()
-                        for (let i = 1; i < coverletter.length; i++) {
-                          typewriter.typeString(coverletter[i])
-                        }
-                      }}
-                    />
+                  <div className="text-white bg-slate-700 p-4 w-[35%] max-w-[35%] h-80 rounded-md overflow-y-scroll">
+                    <RenderLines text={coverletter} />
                   </div>
                 )}
               </div>
@@ -118,4 +102,15 @@ export default function HomePage() {
       </div>
     )
   }
+}
+
+function RenderLines({text}) {
+  // Remove extra new lines at the beginning of the cover letter
+  const trimmedText = text.replace(/^\s*\n+/g, '')
+  return trimmedText.split('\n').map((line, index) => (
+    <React.Fragment key={index}>
+      {line}
+      <br />
+    </React.Fragment>
+  ))
 }
