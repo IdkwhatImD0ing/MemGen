@@ -1,71 +1,68 @@
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Inter, Montserrat } from "next/font/google";
-import { useEffect, useState } from "react";
-import { inputDocument, convertPDF } from "@/functions/axios";
-import Alert from "@mui/material/Alert";
-import axios from "axios";
-import CircularProgress from "@mui/material/CircularProgress";
+import {useUser} from '@auth0/nextjs-auth0/client'
+import {Inter, Montserrat} from 'next/font/google'
+import {useEffect, useState} from 'react'
+import {inputDocument, convertPDF} from '@/functions/axios'
+import Alert from '@mui/material/Alert'
+import axios from 'axios'
+import CircularProgress from '@mui/material/CircularProgress'
 
-const montserrat = Montserrat({ subsets: ["latin"] });
+const montserrat = Montserrat({subsets: ['latin']})
 
 export default function InputDocuments() {
-  const { user } = useUser();
+  const {user} = useUser()
 
   useEffect(() => {
     if (!user) {
-      window.location.href = "/";
+      window.location.href = '/'
     }
-  }, [user]);
-  const [jobDescription, setJobDescription] = useState("");
-  const [loading, setLoading] = useState(0);
-  const [loadingMessage, setLoadingMessage] = useState("");
-  const [formData, setFormData] = useState(null);
+  }, [user])
+  const [jobDescription, setJobDescription] = useState('')
+  const [loading, setLoading] = useState(0)
+  const [loadingMessage, setLoadingMessage] = useState('')
+  const [formData, setFormData] = useState(null)
   const changeHandler = (event) => {
-    const file = event.target.files[0]; // Get the first file from the file input
+    const file = event.target.files[0] // Get the first file from the file input
 
     // Create a FormData object
-    const FD = new FormData();
-    FD.append("pdf", file); // Append the file to the FormData object with the desired field name, in this case "file_upload"
-    setFormData(FD);
-    console.log("FD", FD);
+    const FD = new FormData()
+    FD.append('pdf', file) // Append the file to the FormData object with the desired field name, in this case "file_upload"
+    setFormData(FD)
+    console.log('FD', FD)
 
     // Make the Axios POST request with the FormData object as the data
-  };
+  }
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
-      setLoading(1);
+      setLoading(1)
       setLoadingMessage(
-        "Summarizing your text, please don't navigate away. This can take up to one minute."
-      );
-      console.log(formData);
+        "Summarizing your text, please don't navigate away. This can take up to one minute.",
+      )
+      console.log(formData)
 
       if (formData != null) {
-        console.log("Check");
-        const text = await convertPDF(formData);
-        console.log(text);
-        await inputDocument(user.sub, text);
-      } else {
-        await inputDocument(user.sub, jobDescription);
+        console.log('Check')
+        const text = await convertPDF(formData)
+        console.log(text)
       }
       axios
-        .post("https://api.art3m1s.me/memgen/summarize", {
-          text: jobDescription,
+        .post('https://api.art3m1s.me/memgen/summarize', {
+          text: text ? text : jobDescription,
           userid: user.sub,
         })
         .then((res) => {
-          setLoading(2);
-          setLoadingMessage("Embedding summary into vector database.");
+          setLoading(2)
+          setLoadingMessage('Embedding summary into vector database.')
           inputDocument(user.sub, res.data.data.body.generations[0].text).then(
             (res) => {
-              setLoading(0);
-              setLoadingMessage("");
-              setJobDescription("");
-            }
-          );
-        });
+              setLoading(0)
+              setLoadingMessage('')
+              setJobDescription('')
+            },
+          )
+        })
     } catch (error) {}
-  };
+  }
   if (user) {
     return (
       <div
@@ -114,6 +111,6 @@ export default function InputDocuments() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 }
