@@ -61,12 +61,15 @@ const generate = async (userid, description, text) => {
 
 const convertPDF = async (file) => {
   try {
-    const response = await axios.post(finalurl[3], {
-      file,
+    const response = await axios.post(finalurl[3], file, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
     return response.data;
   } catch (e) {
     console.log(e);
   }
 };
+
 export { inputDocument, getCoverLetter, generate, convertPDF };
