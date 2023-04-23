@@ -195,7 +195,7 @@ router.post('/generate', async function (req, res) {
   const document = userCollection.doc('Account')
   const doc = await document.get()
   const data = doc.data()
-  const credits = data.credit
+  const credits = data.credits
   const tier = data.tier
 
   if (credits < 1 && tier != 'Admin') {
