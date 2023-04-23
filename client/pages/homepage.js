@@ -12,7 +12,7 @@ import Typewriter from 'typewriter-effect'
 const montserrat = Montserrat({subsets: ['latin']})
 
 export default function HomePage() {
-  const {user, error, isLoading} = useUser()
+  const {user, error} = useUser()
 
   useEffect(() => {
     if (!user) {
@@ -52,7 +52,6 @@ export default function HomePage() {
 
   const chunks = coverletter.match(new RegExp(`.{1,${CHUNK_SIZE}}`, 'g'))
 
-  if (isLoading) return <div>Loading...</div>
   if (error) return <div>{error.message}</div>
 
   if (user) {

@@ -7,7 +7,7 @@ import {inputDocument} from '@/functions/axios'
 const montserrat = Montserrat({subsets: ['latin']})
 
 export default function InputDocuments() {
-  const {user, error, isLoading} = useUser()
+  const {user, error} = useUser()
 
   useEffect(() => {
     if (!user) {
@@ -25,7 +25,6 @@ export default function InputDocuments() {
     await inputDocument(user.sub, jobDescription)
   }
 
-  if (isLoading) return <div>Loading...</div>
   if (error) return <div>{error.message}</div>
 
   if (user) {
