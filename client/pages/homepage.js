@@ -1,5 +1,6 @@
 import {useUser} from '@auth0/nextjs-auth0/client'
 import Link from 'next/link'
+import Navbar from './components/Navbar'
 import Image from 'next/image'
 import {Inter, Montserrat} from 'next/font/google'
 import {useEffect, useState} from 'react'
