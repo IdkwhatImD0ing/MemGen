@@ -1,13 +1,13 @@
 var express = require('express')
 var router = express.Router()
-var serviceAccount = require('../firebase.json')
+const firebaseConfig = require('/usr/src/app/firebase.json')
 const {Configuration, OpenAIApi} = require('openai')
 const multer = require('multer')
 const pdfParse = require('pdf-parse')
 const upload = multer({storage: multer.memoryStorage()})
 const axios = require('axios')
 const {MilvusClient, DataType, MetricType} = require('@zilliz/milvus2-sdk-node')
-const config = require('../config.js')
+const config = require('/usr/src/app/config.js')
 const {uri, user, password, secure} = config
 const path = require('path')
 const milvusClient = new MilvusClient(uri, secure, user, password, secure)
@@ -18,12 +18,9 @@ const {v4: uuidv4} = require('uuid')
 // Firebase Setup
 const admin = require('firebase-admin')
 let defaultApp = admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(firebaseConfig),
 })
 let defaultDatabase = admin.firestore(defaultApp)
-let storage = admin.storage(defaultApp)
-const bucket = storage.bucket('images')
-const tempDir = 'temp-images/'
 
 // Openai Setup
 const configuration = new Configuration({
@@ -34,6 +31,29 @@ const openai = new OpenAIApi(configuration)
 // Cohere Setup
 const cohere = require('cohere-ai')
 cohere.init(process.env.COHERE_API_KEY)
+
+// Authentication
+const jwt = require('express-jwt')
+const jwksRsa = require('jwks-rsa')
+
+const jwt = require('express-jwt')
+const jwksRsa = require('jwks-rsa')
+
+// Middleware for validating access tokens
+const checkJwt = jwt({
+  secret: jwksRsa.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: `${process.env.AUTH0_ISSUER_BASE_URL}.well-known/jwks.json`,
+  }),
+
+  audience: process.env.AUTH0_SECRET,
+  issuer: process.env.AUTH0_ISSUER_BASE_URL,
+  algorithms: ['RS256'],
+})
+
+router.use('/signup', checkJwt)
 
 /* GET home page. */
 router.get('/', function (req, res) {
@@ -76,6 +96,42 @@ router.post('/add', async function (req, res) {
       await document.delete()
     }
 
+    res.status(500).json({
+      message: 'An error occurred while processing the transaction.',
+      error: error.message,
+    })
+  }
+})
+
+/* POST delete text. */
+router.post('/delete', async function (req, res) {
+  const {userid, uuid} = req.body
+
+  // Get the text and embedding from Firebase
+  const userCollection = defaultDatabase.collection(userid)
+  const document = userCollection.doc(uuid)
+
+  try {
+    const docSnapshot = await document.get()
+
+    if (!docSnapshot.exists) {
+      res.status(404).json({message: 'Text not found'})
+      return
+    }
+
+    // Delete the text and embedding in Firebase
+    await document.delete()
+
+    const data = {
+      collection_name: 'Resume',
+      expr: `uuid in [${uuid}]`,
+    }
+
+    // Delete the record in Milvus
+    const ret = await milvusClient.deleteEntityByExpression(data)
+
+    res.status(200).json({message: 'success', ret})
+  } catch (error) {
     res.status(500).json({
       message: 'An error occurred while processing the transaction.',
       error: error.message,
@@ -145,9 +201,9 @@ router.post('/generate', async function (req, res) {
   const doc = await document.get()
   const data = doc.data()
   const credits = data.credits
-    const tier = data.tier
+  const tier = data.tier
 
-  if (credits < 1 && tier != "Admin") {
+  if (credits < 1 && tier != 'Admin') {
     res.status(400).json({
       message:
         'Bad request. You do not have enough credits to generate a cover letter.',
@@ -171,7 +227,7 @@ Write a cover letter that matches the job description and utilizes the previous 
         return_likelihoods: 'NONE',
       })
       //Decrease credits by 1
-      if (tier != "Admin"){
+      if (tier != 'Admin') {
         await document.update({
           credits: credits - 1,
           tier: tier,
@@ -208,31 +264,31 @@ router.post('/upload', upload.single('pdf'), async (req, res) => {
   }
 })
 
-router.post('/user/signup', async (req, res) => {
-  const { userid } = req.body;
+router.post('/signup', async (req, res) => {
+  const {userid} = req.body
 
   // Input validation
   if (!userid || typeof userid !== 'string') {
-    return res.status(400).send('Invalid user ID');
+    return res.status(400).send('Invalid user ID')
   }
 
-  const userCollection = defaultDatabase.collection(userid);
-  const document = userCollection.doc('Account');
+  const userCollection = defaultDatabase.collection(userid)
+  const document = userCollection.doc('Account')
 
   try {
     await document.set({
       tier: 'User',
       credits: 5,
-    });
+    })
 
-    res.status(200).send('User successfully created');
+    res.status(200).send('User successfully created')
   } catch (error) {
-    console.error('Error creating user:', error);
-    res.status(500).send('Error creating user');
+    console.error('Error creating user:', error)
+    res.status(500).send('Error creating user')
   }
 })
 
-module.exports = router;
+module.exports = router
 
 async function fetchEmbedding(text) {
   try {
@@ -247,4 +303,3 @@ async function fetchEmbedding(text) {
     throw error
   }
 }
-

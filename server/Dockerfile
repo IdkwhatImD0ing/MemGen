@@ -1,5 +1,5 @@
 # Use the official Node.js image as the base image
-FROM node:14
+FROM node:18
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
@@ -12,6 +12,8 @@ RUN npm install
 
 # Copy the rest of the application code into the container's working directory
 COPY . .
+
+RUN ls -la
 
 # Expose the port the app will run on
 EXPOSE 4004
