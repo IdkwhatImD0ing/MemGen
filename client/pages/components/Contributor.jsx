@@ -1,33 +1,59 @@
 import Image from "next/image"
 import Link from "next/link"
+import { motion } from "framer-motion"
 
 const Contributor = ({ photo, name, info, linkedin, github, gmail }) => {
   return (
-    <div className="transition duration-200 ease-in-out md:w-[40rem] w-[100%] h-[10rem] md:text-[16px] text-[11px] flex bg-slate-100 rounded-xl shadow-md hover:shadow-2xl">
-        <img className="max-w-[50%] h-auto rounded-xl object-cover" src={photo} alt="image"/>
-        <div className="flex flex-col justify-between px-6 py-3 text-left">
-            <figcaption>
-                <div className="text-left font-semibold">
-                    {name}
-                </div>
-                <div className="">
-                    {info}
-                </div>
-            </figcaption>
-            <div className="flex gap-2 items-center">
-                <p className="lg:block hidden">Contact me</p> 
-                <Link href={linkedin}>
-                    <Image src='/linkedin.png' alt='linkedin' width={20} height={20} className="w-[20px] hover:ring-grey" />
-                </Link> 
-                <Link href={github}>
-                    <Image src='/github.png' alt='github' width={20} height={20} className="w-[20px] hover:ring-grey" />
-                </Link> 
-                <Link href={gmail}>
-                <Image src='/gmail-logo.png' alt='gmail' width={20} height={20} className="w-[20px] hover:ring-grey" />
-                </Link> 
-            </div>
+    <motion.div
+      whileHover={{ scale: 1.05 }}
+      className="xl:w-[40rem] w-[20rem] h-auto text-[16px] flex flex-col xl:flex-row bg-slate-700 rounded-xl shadow-lg cursor-default"
+    >
+      <Image
+        className="xl:w-[30%] w-full auto rounded-xl object-cover"
+        src={photo}
+        alt="contact-image"
+        width={1000}
+        height={1000}
+      />
+      <div className="flex flex-col justify-between px-6 py-3 text-left">
+        <figcaption className="flex flex-col gap-2">
+          <div className="text-left font-bold text-[20px]">{name}</div>
+          <div className="">{info}</div>
+        </figcaption>
+        <div className="flex gap-2 items-center mt-4">
+          <motion.a
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            href={linkedin}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Image
+              className="w-[24px] hover:ring-grey"
+              src="/linkedin.png"
+              alt="linkedin-image"
+              width={20}
+              height={20}
+            />
+          </motion.a>
+          <motion.a
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            href={github}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Image
+              className="w-[24px]"
+              src="/github.png"
+              alt="github-image"
+              width={20}
+              height={20}
+            />
+          </motion.a>
         </div>
-    </div>
+      </div>
+    </motion.div>
   )
 }
 
