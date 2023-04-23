@@ -17,11 +17,15 @@ export default function InputDocuments() {
     }
   }, [user])
   const [jobDescription, setJobDescription] = useState('')
+  const [fileName, setFileName] = useState('UploadPDF')
   const [loading, setLoading] = useState(0)
   const [loadingMessage, setLoadingMessage] = useState('')
   const [formData, setFormData] = useState(null)
   const changeHandler = (event) => {
     const file = event.target.files[0] // Get the first file from the file input
+    if (file) {
+      setFileName(file.name)
+    }
 
     // Create a FormData object
     const FD = new FormData()
@@ -34,23 +38,27 @@ export default function InputDocuments() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      let text = null
+      if (formData != null) {
+        console.log('Check')
+        setLoading(1)
+        setLoadingMessage(
+          "Converting PDF to text, please don't navigate away. This can take up to one minute.",
+        )
+        text = await convertPDF(formData)
+        console.log(text)
+      }
       setLoading(1)
       setLoadingMessage(
         "Summarizing your text, please don't navigate away. This can take up to one minute.",
       )
-      console.log(formData)
-
-      if (formData != null) {
-        console.log('Check')
-        const text = await convertPDF(formData)
-        console.log(text)
-      }
       axios
         .post('https://api.art3m1s.me/memgen/summarize', {
           text: text ? text : jobDescription,
           userid: user.sub,
         })
         .then((res) => {
+          console.log(res)
           setLoading(2)
           setLoadingMessage('Embedding summary into vector database.')
           inputDocument(user.sub, res.data.data.body.generations[0].text).then(
@@ -76,10 +84,8 @@ export default function InputDocuments() {
               className="w-screen flex flex-col justify-center items-center gap-8"
             >
               <div className="w-screen flex justify-center items-center gap-4">
-                <label className='className="px-6 py-2 text-white justify-center  hover:scale-105 active:scale-95 w-[35%] h-80 rounded-xl font-semibold border-4  border-dashed "'>
-                  <span class="flex items-center space-x-2 mx-5">
-                    UploadPDF
-                  </span>
+                <label className="px-6 py-2 text-white justify-center hover:scale-105 active:scale-95 w-[35%] h-80 rounded-xl font-semibold border-4 border-dashed flex items-center">
+                  <span className="mx-auto">{fileName}</span>
                   <input
                     type="file"
                     name="file_upload"
@@ -103,7 +109,7 @@ export default function InputDocuments() {
               </button>
             </form>
             {loading !== 0 && (
-              <div className="absolute w-screen h-screen bg-black bg-opacity-70 flex flex-col items-center justify-center">
+              <div className="absolute w-screen h-screen bg-black bg-opacity-70 flex flex-col items-center justify-center overflow-y-hidden">
                 <CircularProgress />
                 <p className="mt-4">{loadingMessage}</p>
               </div>
