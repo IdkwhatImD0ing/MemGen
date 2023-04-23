@@ -1,43 +1,43 @@
-import {useUser} from '@auth0/nextjs-auth0/client'
-import {Inter, Montserrat} from 'next/font/google'
-import Link from 'next/link'
-import {useEffect, useState} from 'react'
-import axios from 'axios'
-import {useRouter} from 'next/router'
-import Modal from 'react-modal'
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Inter, Montserrat } from "next/font/google";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useRouter } from "next/router";
+import Modal from "react-modal";
 
-const montserrat = Montserrat({subsets: ['latin']})
+const montserrat = Montserrat({ subsets: ["latin"] });
 
-Modal.setAppElement('#__next')
+Modal.setAppElement("#__next");
 
 export default function MyDocuments(props) {
-  const {user} = useUser()
-  const router = useRouter()
+  const { user } = useUser();
+  const router = useRouter();
 
-  const [modalIsOpen, setModalIsOpen] = useState(false)
-  const [documentToDelete, setDocumentToDelete] = useState(null)
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState(null);
 
   const openModal = (id) => {
-    setDocumentToDelete(id)
-    setModalIsOpen(true)
-  }
+    setDocumentToDelete(id);
+    setModalIsOpen(true);
+  };
 
   const closeModal = () => {
-    setModalIsOpen(false)
-  }
+    setModalIsOpen(false);
+  };
 
   const confirmDelete = () => {
-    handleDelete(documentToDelete)
-    closeModal()
-  }
+    handleDelete(documentToDelete);
+    closeModal();
+  };
 
   useEffect(() => {
     if (!user) {
-      window.location.href = '/'
+      window.location.href = "/";
     }
-  }, [user])
+  }, [user]);
 
-  const [documents, setDocuments] = useState([])
+  const [documents, setDocuments] = useState([]);
 
   const fetchDocuments = () => {
     axios
@@ -59,19 +59,19 @@ export default function MyDocuments(props) {
   }, [user])
 
   const truncateText = (text, limit = 20) => {
-    const words = text.split(' ')
+    const words = text.split(" ");
     if (words.length > limit) {
-      return words.slice(0, limit).join(' ') + '...'
+      return words.slice(0, limit).join(" ") + "...";
     }
-    return text
-  }
+    return text;
+  };
   const handleBoxClick = (id) => {
-    router.push(`/mydocuments?id=${id}`)
-  }
+    router.push(`/mydocuments?id=${id}`);
+  };
 
   const handleDelete = (id) => {
     axios
-      .post('https://api.art3m1s.me/memgen/delete', {
+      .post("https://api.art3m1s.me/memgen/delete", {
         userid: user.sub,
         uuid: id,
       })
@@ -82,8 +82,8 @@ export default function MyDocuments(props) {
   }
 
   const selectedDocument = documents.find(
-    (document) => document.id === router.query.id,
-  )
+    (document) => document.id === router.query.id
+  );
 
   return (
     <div
@@ -96,12 +96,12 @@ export default function MyDocuments(props) {
             <div
               className="w-1/2 h-1/4 bg-slate-700 p-4 rounded-md overflow-y-scroll"
               style={{
-                maxHeight: '60vh',
+                maxHeight: "60vh",
               }}
             >
               <button
                 onClick={() => {
-                  router.push('/mydocuments')
+                  router.push("/mydocuments");
                 }}
                 className="bg-blue-500 text-white p-2 rounded-md mb-4"
               >
@@ -130,12 +130,12 @@ export default function MyDocuments(props) {
           </div>
         ) : (
           <div className="text-2xl">
-            You have no documents,{' '}
+            You have no documents,{" "}
             <Link href="/inputdocuments">
               <span className="text-blue-500 hover:text-blue-300 cursor-pointer">
                 go to upload document
               </span>
-            </Link>{' '}
+            </Link>{" "}
             to upload some!
           </div>
         )}
@@ -164,5 +164,5 @@ export default function MyDocuments(props) {
         </div>
       </Modal>
     </div>
-  )
+  );
 }

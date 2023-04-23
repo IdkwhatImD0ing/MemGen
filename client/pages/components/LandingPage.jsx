@@ -1,15 +1,15 @@
-import React from 'react'
-import Link from 'next/link'
+import React from "react";
+import Link from "next/link";
 
 export default function LandingPage() {
   const handleRedirect = () => {
-    window.location.href = '/homepage'
-  }
+    window.location.href = "/homepage";
+  };
 
   return (
     <div
       className="flex items-center min-h-screen gap-6 text-white px-20"
-      style={{overflowY: 'hidden', height: '100vh'}}
+      style={{ overflowY: "hidden", height: "100vh" }}
     >
       <div>
         <div className="flex flex-col gap-4">
@@ -28,5 +28,5 @@ export default function LandingPage() {
         </button>
       </div>
     </div>
-  )
+  );
 }

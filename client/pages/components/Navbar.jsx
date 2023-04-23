@@ -1,9 +1,9 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import {useUser} from '@auth0/nextjs-auth0/client'
+import Image from "next/image";
+import Link from "next/link";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 export default function Navbar() {
-  const {user} = useUser()
+  const { user } = useUser();
 
   return (
     <nav className="fixed pl-8 pr-8 top-0 w-full bg-black flex text-white items-center justify-center">
@@ -54,5 +54,5 @@ export default function Navbar() {
         </div>
       )}
     </nav>
-  )
+  );
 }

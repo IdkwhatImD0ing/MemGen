@@ -1,12 +1,12 @@
-import '@/styles/globals.css'
-import {Analytics} from '@vercel/analytics/react'
+import "@/styles/globals.css";
+import { Analytics } from "@vercel/analytics/react";
 // pages/_app.js
-import React from 'react'
-import Navbar from './components/Navbar'
-import {UserProvider} from '@auth0/nextjs-auth0/client'
-import Head from 'next/head'
+import React from "react";
+import Navbar from "./components/Navbar";
+import { UserProvider } from "@auth0/nextjs-auth0/client";
+import Head from "next/head";
 
-export default function App({Component, pageProps}) {
+export default function App({ Component, pageProps }) {
   return (
     <UserProvider>
       <Navbar />
@@ -16,5 +16,5 @@ export default function App({Component, pageProps}) {
       </Head>
       <Analytics />
     </UserProvider>
-  )
+  );
 }

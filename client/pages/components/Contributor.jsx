@@ -1,6 +1,6 @@
-import Image from "next/image"
-import Link from "next/link"
-import { motion } from "framer-motion"
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 const Contributor = ({ photo, name, info, linkedin, github, gmail }) => {
   return (
@@ -54,7 +54,7 @@ const Contributor = ({ photo, name, info, linkedin, github, gmail }) => {
         </div>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default Contributor
+export default Contributor;
