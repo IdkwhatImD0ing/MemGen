@@ -34,6 +34,7 @@ export default function HomePage() {
     setLoading2(true)
     let finalString = generateInput.join(' ')
     const generateres = await generate(user.sub, jobDescription, finalString)
+    console.log(generateres)
     setCoverletter(generateres.data.body.generations[0].text)
     setLoading2(false)
   }

@@ -101,13 +101,11 @@ router.post('/delete', async function (req, res) {
     // Delete the text and embedding in Firebase
     await document.delete()
 
-    const data = {
-      collection_name: 'Resume',
-      expr: `uuid in [${uuid}]`,
-    }
-
     // Delete the record in Milvus
-    const ret = await milvusClient.deleteEntityByExpression(data)
+    const ret = await milvusClient.deleteEntities({
+      collection_name: 'Resume',
+      expr: `uuid in ["${uuid}"]`,
+    })
 
     res.status(200).json({message: 'success', ret})
   } catch (error) {
@@ -119,17 +117,22 @@ router.post('/delete', async function (req, res) {
 })
 
 router.get('/documents', async function (req, res) {
-  const {userid} = req.params
+  const {userid} = req.query
 
   // Get the user's collection
   const userCollection = defaultDatabase.collection(userid)
 
   // Get all the documents in the collection
-  const documents = await userCollection.get()
+  const querySnapshot = await userCollection.get()
+
+  // Convert the QuerySnapshot to an array of documents
+  const documents = querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }))
 
   // Filter the documents to remove the one with name Account
   const filteredDocuments = documents.filter((doc) => doc.id !== 'Account')
-
   // Return the filtered documents
   res.status(200).json(filteredDocuments)
 })
@@ -139,46 +142,56 @@ router.post('/query', async function (req, res) {
   const {userid, text} = req.body
 
   if (userid && text) {
-    // Reload collection
-    await milvusClient.loadCollection({
-      collection_name: 'Resume',
-    })
+    try {
+      // Reload collection
+      await milvusClient.loadCollection({
+        collection_name: 'Resume',
+      })
 
-    // Process the data as needed
-    const embedding = await fetchEmbedding(text)
-    const searchParams = {
-      anns_field: 'vector',
-      topk: 3,
-      metric_type: MetricType.L2,
-      params: JSON.stringify({nprobe: 1024}),
+      // Process the data as needed
+      const embedding = await fetchEmbedding(text)
+      const searchParams = {
+        anns_field: 'vector',
+        topk: 3,
+        metric_type: MetricType.L2,
+        params: JSON.stringify({nprobe: 1024}),
+      }
+      const searchReq = {
+        collection_name: 'Resume',
+        vectors: [embedding],
+        search_params: searchParams,
+        vector_type: DataType.FloatVector,
+        expr: `userid == "${userid}"`,
+        output_fields: ['uuid'],
+      }
+
+      const searchResults = await milvusClient.search(searchReq)
+
+      // Reverse search results
+      searchResults.results.reverse()
+      // Process the search results
+      const messagePromises = searchResults.results.map(async (result) => {
+        // Find the corresponding document in firebase
+        const id = result.id
+        const docRef = defaultDatabase.collection(userid).doc(id)
+        const doc = await docRef.get()
+
+        const data = doc.data()
+        const text = data.text
+        return text
+      })
+
+      // Wait for all promises to resolve
+      const messageArray = await Promise.all(messagePromises)
+
+      // Send the response
+      res.status(200).json({message: 'success', data: messageArray})
+    } catch (error) {
+      res.status(500).json({
+        message: 'An error occurred while processing the request.',
+        error: error.message,
+      })
     }
-    const searchReq = {
-      collection_name: 'Resume',
-      vectors: [embedding],
-      search_params: searchParams,
-      vector_type: DataType.FloatVector,
-      expr: `userid == "${userid}"`,
-      output_fields: ['uuid'],
-    }
-
-    const searchResults = await milvusClient.search(searchReq)
-    // Process the search results
-    const messagePromises = searchResults.results.map(async (result) => {
-      // Find the corresponding document in firebase
-      const id = result.id
-      const docRef = defaultDatabase.collection(userid).doc(id)
-      const doc = await docRef.get()
-
-      const data = doc.data()
-      const text = data.text
-      return text
-    })
-
-    // Wait for all promises to resolve
-    const messageArray = await Promise.all(messagePromises)
-
-    // Send the response
-    res.status(200).json({message: 'success', data: messageArray})
   } else {
     res.status(400).json({
       message: 'Bad request. Please provide both userid and text fields.',
@@ -187,39 +200,40 @@ router.post('/query', async function (req, res) {
 })
 
 router.post('/generate', async function (req, res) {
-  const {userid, description, text} = req.body
+  try {
+    const {userid, description, text} = req.body
 
-  //Search user collection, "Account" docs, credits to see if they have enough credits
-  const userCollection = defaultDatabase.collection(userid)
-  const document = userCollection.doc('Account')
-  const doc = await document.get()
-  const data = doc.data()
-  const credits = data.credits
-  const tier = data.tier
+    // Search user collection, "Account" docs, credits to see if they have enough credits
+    const userCollection = defaultDatabase.collection(userid)
+    const document = userCollection.doc('Account')
+    const doc = await document.get()
+    const data = doc.data()
+    const credits = data.credits
+    const tier = data.tier
 
-  if (credits < 1 && tier != 'Admin') {
-    res.status(402).json({
-      message: 'You do not have enough credits to generate a cover letter.',
-    })
-  }
+    if (credits < 1 && tier != 'Admin') {
+      res.status(402).json({
+        message: 'You do not have enough credits to generate a cover letter.',
+      })
+      return
+    }
 
-  if (text && description) {
-    try {
-      const prompt = `Job description: ${description}
+    if (text && description) {
+      const prompt = `Write a cover letter that matches the job description and utilizes the previous experiences provided:
+Job description: ${description}
 Previous experiences: ${text}
-
-Write a cover letter that matches the job description and utilizes the previous experiences provided:
 `
       const response = await cohere.generate({
         model: 'command-xlarge-nightly',
         prompt: prompt,
-        max_tokens: 2000,
+        max_tokens: 4090,
         temperature: 0.8,
         k: 0,
         stop_sequences: [],
         return_likelihoods: 'NONE',
+        truncate: 'END',
       })
-      //Decrease credits by 1
+      // Decrease credits by 1
       if (tier != 'Admin') {
         await document.update({
           credits: credits - 1,
@@ -227,16 +241,16 @@ Write a cover letter that matches the job description and utilizes the previous 
         })
       }
       res.status(200).json({message: 'success', data: response})
-    } catch (error) {
-      res.status(500).json({
-        message: 'An error occurred while processing your request.',
-        error: error.message,
+    } else {
+      res.status(400).json({
+        message:
+          'Bad request. Please provide a JSON string in the "jsonPrompt" field.',
       })
     }
-  } else {
-    res.status(400).json({
-      message:
-        'Bad request. Please provide a JSON string in the "jsonPrompt" field.',
+  } catch (error) {
+    res.status(500).json({
+      message: 'An error occurred while processing your request.',
+      error: error.message,
     })
   }
 })
