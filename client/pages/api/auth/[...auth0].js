@@ -3,28 +3,48 @@ import {
   handleCallback,
   handleLogin,
   handleLogout,
+  getSession,
 } from '@auth0/nextjs-auth0'
+import axios from 'axios'
+
+async function callSignupApi(user, accessToken) {
+  try {
+    const response = await axios.post(
+      'http://localhost:4004/signup',
+      {
+        email: user.email,
+        userId: user.sub,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+
+    console.log('Backend Signup API response:', response.data)
+  } catch (error) {
+    console.error('Error calling the backend /signup endpoint:', error.message)
+  }
+}
 
 export default handleAuth({
   async callback(req, res) {
     try {
       await handleCallback(req, res, {
-        onUserLoaded: async (req, res, session) => {
-          const signedUp = session.user.user_metadata?.signed_up
+        redirectTo: async (req, res) => {
+          const {user} = req.oidc
+          const session = getSession(req, res)
+          const signedUp = user.user_metadata?.signed_up
+
           if (!signedUp) {
-            // Redirect to /api/signup if the signed_up flag is not set
-            res.writeHead(302, {
-              Location: '/api/signup',
-            })
-            res.end()
-          } else {
-            // Redirect to /homepage if the user has already signed up
-            res.writeHead(302, {
-              Location: '/homepage',
-            })
-            res.end()
+            // Call the backend /signup endpoint if the signed_up flag is not set
+            await callSignupApi(user, session.accessToken)
           }
-          return session
+
+          // Redirect to /homepage in any case
+          res.redirect('/homepage')
         },
       })
     } catch (error) {
