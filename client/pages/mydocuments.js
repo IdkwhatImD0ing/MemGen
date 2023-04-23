@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import Modal from "react-modal";
+import CircularProgress from '@mui/material/CircularProgress'
 
 const montserrat = Montserrat({ subsets: ["latin"] });
 
@@ -13,7 +14,8 @@ Modal.setAppElement("#__next");
 export default function MyDocuments(props) {
   const { user } = useUser();
   const router = useRouter();
-
+  const [loading, setLoading] = useState(0)
+  const [loadingMessage, setLoadingMessage] = useState('')
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState(null);
 
@@ -70,16 +72,25 @@ export default function MyDocuments(props) {
   };
 
   const handleDelete = (id) => {
-    axios
-      .post("https://api.art3m1s.me/memgen/delete", {
-        userid: user.sub,
-        uuid: id,
-      })
-      .then((res) => {
-        fetchDocuments()
-        router.push('/mydocuments')
-      })
-  }
+    try {
+      console.log("Here")
+      setLoading(1)
+      setLoadingMessage(
+        "Deleting selected document.",
+      )
+      axios
+        .post("https://api.art3m1s.me/memgen/delete", {
+          userid: user.sub,
+          uuid: id,
+        })
+        .then((res) => {
+          fetchDocuments()
+          setLoading(0)
+          setLoadingMessage('')
+          router.push('/mydocuments')
+        })
+  } catch (error) {}
+}
 
   const selectedDocument = documents.find(
     (document) => document.id === router.query.id
@@ -139,6 +150,12 @@ export default function MyDocuments(props) {
             to upload some!
           </div>
         )}
+                {loading !== 0 && (
+              <div className="absolute top-0 w-screen h-screen bg-black bg-opacity-70 flex flex-col items-center justify-center overflow-y-hidden">
+                <CircularProgress />
+                <p className="mt-4">{loadingMessage}</p>
+              </div>
+      )}
       </div>
       <Modal
         isOpen={modalIsOpen}
@@ -163,6 +180,9 @@ export default function MyDocuments(props) {
           </button>
         </div>
       </Modal>
+
     </div>
+    
   );
+  
 }
