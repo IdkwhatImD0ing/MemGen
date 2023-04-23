@@ -52,7 +52,7 @@ const generate = async (userid, description, text) => {
     })
     return response.data
   } catch (e) {
-    console.log(error)
+    console.log(e)
   }
 }
 
