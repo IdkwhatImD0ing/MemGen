@@ -171,7 +171,6 @@ router.post('/query', async function (req, res) {
 
       const data = doc.data()
       const text = data.text
-      console.log(text)
       return text
     })
 

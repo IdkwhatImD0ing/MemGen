@@ -1,14 +1,22 @@
 import axios from 'axios'
 
-const url = ['https://api.art3m1s.me/memgen/add','https://api.art3m1s.me/memgen/query','https://api.art3m1s.me/memgen/generate'];
-const localhost = ['http://localhost:4004/add','http://localhost:4004/query','http://localhost:4004/generate']
+const url = [
+  'https://api.art3m1s.me/memgen/add',
+  'https://api.art3m1s.me/memgen/query',
+  'https://api.art3m1s.me/memgen/generate',
+]
+const localhost = [
+  'http://localhost:4004/add',
+  'http://localhost:4004/query',
+  'http://localhost:4004/generate',
+]
 
-let local = true
+let local = false
 
 let finalurl = []
 if (local) {
   finalurl = localhost
-}else{
+} else {
   finalurl = url
 }
 
@@ -37,14 +45,11 @@ const getCoverLetter = async (userid, text) => {
 
 const generate = async (userid, description, text) => {
   try {
-    const response = await axios.post(
-      finalurl[2],
-      {
-        userid: userid,
-        description: description,
-        text: text,
-      },
-    )
+    const response = await axios.post(finalurl[2], {
+      userid: userid,
+      description: description,
+      text: text,
+    })
     return response.data
   } catch (e) {
     console.log(error)
