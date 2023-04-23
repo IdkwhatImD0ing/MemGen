@@ -11,7 +11,7 @@ export default function About() {
       name: 'Bill Zhang',
       linkedin: 'https://www.linkedin.com/in/bill-zhang-57976b1b3/',
       github: 'https://github.com/IdkwhatImD0ing',
-      info: 'B.S. in Computer Science at UC Santa Cruz',
+      info: 'Incoming M.S. in Computer Science at University of Southern California',
       photo: '/bill.jpg',
     },
     {
