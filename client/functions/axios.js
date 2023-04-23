@@ -11,7 +11,7 @@ const localhost = [
   'http://localhost:4004/generate',
 ]
 
-let local = false
+let local = true
 
 let finalurl = []
 if (local) {
