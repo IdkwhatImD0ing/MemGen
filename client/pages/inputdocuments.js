@@ -2,6 +2,7 @@ import {useUser} from '@auth0/nextjs-auth0/client'
 import {Inter, Montserrat} from 'next/font/google'
 import {useEffect, useState} from 'react'
 import {inputDocument} from '@/functions/axios'
+import Alert from '@mui/material/Alert';
 
 const montserrat = Montserrat({subsets: ['latin']})
 
@@ -21,7 +22,13 @@ export default function InputDocuments() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    await inputDocument(user.sub, jobDescription)
+    try{
+      await inputDocument(user.sub, jobDescription)
+      return <Alert severity="success">Successfully added!</Alert>
+    }catch(error){
+      return <Alert severity="error">{error}</Alert>
+    }
+    
   }
 
   if (user) {
