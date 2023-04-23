@@ -1,47 +1,47 @@
-import {useUser} from '@auth0/nextjs-auth0/client'
-import {Inter, Montserrat} from 'next/font/google'
-import {useEffect, useState} from 'react'
-import {getCoverLetter, generate} from '@/functions/axios'
-import {PacmanLoader} from 'react-spinners'
-import Typewriter from 'typewriter-effect'
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Inter, Montserrat } from "next/font/google";
+import { useEffect, useState } from "react";
+import { getCoverLetter, generate } from "@/functions/axios";
+import { PacmanLoader } from "react-spinners";
+import Typewriter from "typewriter-effect";
 
-const montserrat = Montserrat({subsets: ['latin']})
+const montserrat = Montserrat({ subsets: ["latin"] });
 
 export default function HomePage() {
-  const {user} = useUser()
+  const { user } = useUser();
 
   useEffect(() => {
     if (!user) {
-      window.location.href = '/'
+      window.location.href = "/";
     }
-  }, [user])
+  }, [user]);
 
-  const [jobDescription, setJobDescription] = useState('')
-  const [coverletter, setCoverletter] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [loading2, setLoading2] = useState(false)
+  const [jobDescription, setJobDescription] = useState("");
+  const [coverletter, setCoverletter] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    const res = await getCoverLetter(user.sub, jobDescription)
-    let generateInput = []
+    e.preventDefault();
+    setLoading(true);
+    const res = await getCoverLetter(user.sub, jobDescription);
+    let generateInput = [];
     for (let i = 0; i < res.data.length; i++) {
-      generateInput.push(res.data[i])
-      alert(res.data[i])
+      generateInput.push(res.data[i]);
+      alert(res.data[i]);
     }
-    setLoading(false)
-    setLoading2(true)
-    let finalString = generateInput.join(' ')
-    const generateres = await generate(user.sub, jobDescription, finalString)
-    console.log(generateres)
-    setCoverletter(generateres.data.body.generations[0].text)
-    setLoading2(false)
-  }
+    setLoading(false);
+    setLoading2(true);
+    let finalString = generateInput.join(" ");
+    const generateres = await generate(user.sub, jobDescription, finalString);
+    console.log(generateres);
+    setCoverletter(generateres.data.body.generations[0].text);
+    setLoading2(false);
+  };
 
-  const CHUNK_SIZE = 50
+  const CHUNK_SIZE = 50;
 
-  const chunks = coverletter.match(new RegExp(`.{1,${CHUNK_SIZE}}`, 'g'))
+  const chunks = coverletter.match(new RegExp(`.{1,${CHUNK_SIZE}}`, "g"));
 
   if (user) {
     return (
@@ -66,7 +66,7 @@ export default function HomePage() {
                 {loading ? (
                   <div className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 flex flex-col items-center justify-center gap-2">
                     <PacmanLoader
-                      color={'#ffffff'}
+                      color={"#ffffff"}
                       loading={loading}
                       size={50}
                     />
@@ -80,7 +80,7 @@ export default function HomePage() {
                 ) : loading2 ? (
                   <div className="text-white bg-slate-700 p-2 rounded-md w-[35%] h-80 flex flex-col items-center justify-center gap-2">
                     <PacmanLoader
-                      color={'#ffffff'}
+                      color={"#ffffff"}
                       loading={loading2}
                       size={50}
                     />
@@ -95,9 +95,9 @@ export default function HomePage() {
                           .pauseFor(0)
                           .changeDelay(5)
                           .typeString(coverletter[0])
-                          .start()
+                          .start();
                         for (let i = 1; i < coverletter.length; i++) {
-                          typewriter.typeString(coverletter[i])
+                          typewriter.typeString(coverletter[i]);
                         }
                       }}
                     />
@@ -115,6 +115,6 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 }
