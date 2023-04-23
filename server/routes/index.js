@@ -34,26 +34,6 @@ const openai = new OpenAIApi(configuration)
 const cohere = require('cohere-ai')
 cohere.init(process.env.COHERE_API_KEY)
 
-// Authentication
-var {expressjwt: jwt} = require('express-jwt')
-const jwksRsa = require('jwks-rsa')
-
-// Middleware for validating access tokens
-const checkJwt = jwt({
-  secret: jwksRsa.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: `${process.env.AUTH0_ISSUER_BASE_URL}.well-known/jwks.json`,
-  }),
-
-  audience: process.env.AUTH0_SECRET,
-  issuer: process.env.AUTH0_ISSUER_BASE_URL,
-  algorithms: ['RS256'],
-})
-
-router.use('/signup', checkJwt)
-
 /* GET home page. */
 router.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, 'file.html'))
@@ -279,7 +259,11 @@ router.post('/upload', upload.single('pdf'), async (req, res) => {
 })
 
 router.post('/signup', async (req, res) => {
-  const {userid} = req.body
+  const {userid, secretkey} = req.body
+
+  if (secretkey != process.env.SECRET_KEY) {
+    return res.status(401).send('Unauthorized')
+  }
 
   // Input validation
   if (!userid || typeof userid !== 'string') {
