@@ -13,6 +13,7 @@ const config = require('../config.js')
 const {uri, user, password, secure} = config
 const path = require('path')
 const milvusClient = new MilvusClient(uri, secure, user, password, secure)
+const fetch = require('node-fetch')
 
 // Uuid
 const {v4: uuidv4} = require('uuid')
@@ -220,24 +221,52 @@ router.post('/generate', async function (req, res) {
 
     if (text && description) {
       const prompt = `
+      Write a cover letter that matches the job description and utilizes the previous experiences provided.
       [Start Previous Experiences]
       ${text}
       [End Previous Experiences]
       [Start Job Description]
-       ${description}
-      [End Job Description]
-      Write a cover letter that matches the job description and utilizes the previous experiences provided.`
-      const response = await cohere.generate({
-        model: 'command-xlarge-nightly',
-        prompt: prompt,
-        max_tokens: 4090,
-        temperature: 0.8,
-        k: 0,
-        stop_sequences: [],
-        return_likelihoods: 'NONE',
-        truncate: 'START',
-      })
+      ${description}
+      [End Job Description]`
 
+      const response = await openai.createCompletion({
+        model: 'text-davinci-003',
+        prompt: prompt,
+        max_tokens: 2000,
+        temperature: 0.8,
+        top_p: 1,
+        frequency_penalty: 0.0,
+      })
+      // const response = await cohere.generate({
+      //   model: 'command-xlarge-nightly',
+      //   prompt: prompt,
+      //   max_tokens: 4090,
+      //   temperature: 0.8,
+      //   k: 0,
+      //   stop_sequences: [],
+      //   return_likelihoods: 'NONE',
+      //   truncate: 'END',
+      // })
+      // const response = await fetch('https://api.cohere.ai/v1/generate', {
+      //   method: 'POST',
+      //   headers: {
+      //     Accept: 'application/json',
+      //     Authorization: `Bearer ${process.env.COHERE_API_KEY}`,
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     model: 'command-xlarge-nightly',
+      //     prompt: prompt,
+      //     max_tokens: 4090,
+      //     temperature: 0.8,
+      //     k: 0,
+      //     stop_sequences: [],
+      //     return_likelihoods: 'NONE',
+      //     truncate: 'START',
+      //   }),
+      // })
+
+      // const data = await response.json()
       // Decrease credits by 1
       if (tier != 'Admin') {
         await document.update({
@@ -245,7 +274,9 @@ router.post('/generate', async function (req, res) {
           tier: tier,
         })
       }
-      res.status(200).json({message: 'success', data: response})
+      res
+        .status(200)
+        .json({message: 'success', data: response.data.choices[0].text})
     } else {
       res.status(400).json({
         message:
