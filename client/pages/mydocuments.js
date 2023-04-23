@@ -46,8 +46,14 @@ export default function MyDocuments(props) {
   }
 
   const handleDelete = (id) => {
-    console.log(`Delete document with id: ${id}`)
-    // Call the API to delete the document and update the state.
+    axios
+      .post('https://api.art3m1s.me/memgen/delete', {
+        userid: user.sub,
+        uuid: id,
+      })
+      .then((res) => {
+        router.push('/mydocuments')
+      })
   }
 
   const selectedDocument = documents.find(
@@ -56,29 +62,38 @@ export default function MyDocuments(props) {
 
   return (
     <div
-      className={`text-white ${montserrat.className}`}
-      style={{
-        background: 'black',
-        backgroundAttachment: 'fixed',
-        height: '100vh',
-      }}
+      className={`text-white ${montserrat.className} h-screen overflow-hidden bg-fixed bg-black`}
     >
-      <div className="container mx-auto px-4" style={{paddingTop: '20vh'}}>
+      <div className="container mx-auto px-4 pt-32 pb-8 h-full">
         <h1 className="text-4xl font-bold mb-6">My Documents</h1>
         {selectedDocument ? (
           <div className="relative flex items-center justify-center">
-            <div className="w-1/2 h-1/2 bg-slate-700 p-4 rounded-md overflow-y-scroll">
+            <div
+              className="w-1/2 h-1/4 bg-slate-700 p-4 rounded-md overflow-y-scroll"
+              style={{
+                maxHeight: '60vh',
+              }}
+            >
+              <button
+                onClick={() => {
+                  router.push('/mydocuments')
+                }}
+                className="bg-blue-500 text-white p-2 rounded-md mb-4"
+              >
+                Back
+              </button>
               <button
                 onClick={() => handleDelete(selectedDocument.id)}
-                className="absolute top-0 right-0 bg-red-500 text-white p-2 rounded-md"
+                className="bg-red-500 text-white p-2 rounded-md mb-4 ml-4"
               >
                 Delete
               </button>
+
               <p>{selectedDocument.text}</p>
             </div>
           </div>
         ) : documents.length > 0 ? (
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 gap-6 overflow-y-auto max-h-full">
             {documents.map((document) => (
               <div
                 key={document.id}
