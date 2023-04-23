@@ -1,7 +1,7 @@
 import {useUser} from '@auth0/nextjs-auth0/client'
 import {Inter, Montserrat} from 'next/font/google'
 import {useEffect, useState} from 'react'
-import {inputDocument} from '@/functions/axios'
+import {inputDocument, uploadDocument} from '@/functions/axios'
 import Alert from '@mui/material/Alert'
 import axios from 'axios'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -30,22 +30,30 @@ export default function InputDocuments() {
   const [jobDescription, setJobDescription] = useState('')
   const [loading, setLoading] = useState(0)
   const [loadingMessage, setLoadingMessage] = useState('')
+  const [filename, setFileName] = useState('')
+  const [textEnabled, setTextEnabled] = useState(true)
+  const [formData, setFormData] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      if (filename) {
+        setLoading(1)
+        setLoadingMessage('Parsing PDF...')
+        const text = await uploadDocument(formData)
+      }
       setLoading(1)
       setLoadingMessage(
-        "Summarizing your text, please don't navigate away. This can take up to one minute.",
+        "Summarizing your text, please don't navigate away. This can take up to one minute...",
       )
       axios
         .post('https://api.art3m1s.me/memgen/summarize', {
-          text: jobDescription,
+          text: text ? text : jobDescription,
           userid: user.sub,
         })
         .then((res) => {
           setLoading(2)
-          setLoadingMessage('Embedding summary into vector database.')
+          setLoadingMessage('Embedding summary into vector database...')
           inputDocument(user.sub, res.data.data.body.generations[0].text).then(
             (res) => {
               setLoading(0)
@@ -70,16 +78,14 @@ export default function InputDocuments() {
               className="w-screen flex flex-col justify-center items-center gap-8"
             >
               <div className="w-screen flex flex-row justify-center items-center gap-4 text-white">
-                <label className='className="px-6 py-2 text-white justify-center  hover:scale-105 active:scale-95 w-[35%] h-80 rounded-xl font-semibold border-4  border-dashed "'>
-                  <span class="flex items-center space-x-2 mx-5">
-                    UploadPDF
-                  </span>
-                  <p className="mx-5">{filename}</p>
+                <label className="px-6 py-2 text-white justify-center hover:scale-105 active:scale-95 w-[35%] h-80 rounded-xl font-semibold border-4 border-dashed flex flex-col items-center">
+                  <span className="flex items-center space-x-2">UploadPDF</span>
+                  <p>{filename}</p>
 
                   <input
                     type="file"
                     name="file_upload"
-                    class="hidden"
+                    className="hidden"
                     onChange={changeHandler}
                   />
                 </label>
@@ -89,7 +95,7 @@ export default function InputDocuments() {
                   placeholder="Side projects, previous work roles, technical experiences..."
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
-                  className=" bg-slate-700 p-4 rounded-md w-[35%] h-80 overflow-y-auto outline-none resize-none"
+                  className="bg-slate-700 p-4 rounded-md w-[35%] h-80 overflow-y-auto outline-none resize-none"
                   disabled={!textEnabled}
                 />
               </div>
