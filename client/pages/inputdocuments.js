@@ -75,6 +75,11 @@ export default function InputDocuments() {
               setLoading(0)
               setLoadingMessage('')
               setJobDescription('')
+              setModalData({
+                title: 'Success!',
+                message: 'Your document has been added to the database.',
+              })
+              setShowModal(true)
             })
             .catch((error) => {
               if (error.response && error.response.status > 300) {
