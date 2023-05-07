@@ -1,4 +1,6 @@
-export default function GenericModal({data, onClose, emailAddress}) {
+import React from 'react'
+
+function GenericModal({data, onClose}) {
   return (
     <div className="fixed z-10 inset-0 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
@@ -28,3 +30,12 @@ export default function GenericModal({data, onClose, emailAddress}) {
     </div>
   )
 }
+
+GenericModal.defaultProps = {
+  data: {
+    title: '',
+    message: '',
+  },
+}
+
+export default GenericModal

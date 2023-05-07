@@ -65,7 +65,7 @@ export default function MyDocuments(props) {
     if (user) {
       fetchDocuments()
     }
-  }, [user])
+  }, [user, fetchDocuments])
 
   const truncateText = (text, limit = 20) => {
     const words = text.split(' ')

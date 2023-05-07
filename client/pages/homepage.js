@@ -17,7 +17,7 @@ export default function HomePage() {
     if (!user) {
       router.push('/')
     }
-  }, [user, user])
+  }, [user, router])
 
   const [jobDescription, setJobDescription] = useState('')
   const [coverletter, setCoverletter] = useState('')
