@@ -6,6 +6,7 @@ import {useEffect, useState} from 'react'
 import {getCoverLetter, generate} from '@/functions/axios'
 import {PacmanLoader} from 'react-spinners'
 import GenericModal from './components/GenericModal'
+import Head from 'next/head'
 
 const montserrat = Montserrat({subsets: ['latin']})
 
@@ -65,6 +66,10 @@ export default function HomePage() {
       <div
         className={`bg-black text-white min-h-screen px-10 py-2 ${montserrat.className}`}
       >
+        <Head>
+          <link rel="icon" href="/memgen.svg" />
+          <title>Home</title>
+        </Head>
         <div className="flex flex-col gap-8 items-center justify-center">
           <h1 className="text-3xl font-bold mt-10">{`Welcome ${user.name}, let's start building your cover letter.`}</h1>
           <div className="flex w-screen min-h-full">

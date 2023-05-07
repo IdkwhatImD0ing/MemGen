@@ -7,6 +7,7 @@ import axios from 'axios'
 import {useRouter} from 'next/router'
 import Modal from 'react-modal'
 import CircularProgress from '@mui/material/CircularProgress'
+import Head from 'next/head'
 
 const montserrat = Montserrat({subsets: ['latin']})
 
@@ -104,6 +105,10 @@ export default function MyDocuments(props) {
     <div
       className={`text-white ${montserrat.className} h-screen overflow-hidden bg-fixed bg-black`}
     >
+      <Head>
+        <link rel="icon" href="/memgen.svg" />
+        <title>Documents</title>
+      </Head>
       <div className="container mx-auto px-4 pt-32 pb-8 h-full">
         <h1 className="text-4xl font-bold mb-6">My Documents</h1>
         {selectedDocument ? (

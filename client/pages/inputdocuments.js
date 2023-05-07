@@ -7,6 +7,7 @@ import {inputDocument, convertPDF} from '@/functions/axios'
 import Alert from '@mui/material/Alert'
 import axios from 'axios'
 import CircularProgress from '@mui/material/CircularProgress'
+import Head from 'next/head'
 
 const montserrat = Montserrat({subsets: ['latin']})
 
@@ -101,6 +102,10 @@ export default function InputDocuments() {
       <div
         className={`bg-black text-white min-h-screen px-10 py-2 overflow-hidden ${montserrat.className}`}
       >
+        <Head>
+          <link rel="icon" href="/memgen.svg" />
+          <title>Add</title>
+        </Head>
         <div className="flex flex-col gap-8 items-center justify-center">
           <h1 className="text-3xl font-bold mt-10">{`Let's get to know ${user.name}.`}</h1>
           <div className="flex w-screen min-h-full">

@@ -1,5 +1,6 @@
 import React from 'react'
 import {useRouter} from 'next/router'
+import Head from 'next/head'
 
 export default function LandingPage() {
   const router = useRouter()
@@ -12,6 +13,10 @@ export default function LandingPage() {
       className="flex items-center min-h-screen gap-6 text-white px-20"
       style={{overflowY: 'hidden', height: '100vh'}}
     >
+      <Head>
+        <link rel="icon" href="/memgen.svg" />
+        <title>Memgen</title>
+      </Head>
       <div>
         <div className="flex flex-col gap-4">
           <div className="font-bold text-8xl">Where Careers</div>
