@@ -1,12 +1,13 @@
 import {useUser} from '@auth0/nextjs-auth0/client'
 import {Montserrat} from 'next/font/google'
 import {useRouter} from 'next/router'
-import React from 'react'
+import React, {useRef} from 'react'
 import {useEffect, useState} from 'react'
 import {getCoverLetter, generate} from '@/functions/axios'
 import {PacmanLoader} from 'react-spinners'
 import GenericModal from './components/GenericModal'
 import Head from 'next/head'
+import Typewriter from 'typewriter-effect'
 
 const montserrat = Montserrat({subsets: ['latin']})
 
@@ -54,6 +55,7 @@ export default function HomePage() {
     if (res2.status > 300) {
       setLoading2(false)
       setModalData(res.data)
+      console.log(res.data.error)
       setShowModal(true)
       return
     }
@@ -134,12 +136,14 @@ export default function HomePage() {
 }
 
 function RenderLines({text}) {
-  // Remove extra new lines at the beginning of the cover letter
-  const trimmedText = text.replace(/^\s*\n+/g, '')
-  return trimmedText.split('\n').map((line, index) => (
-    <React.Fragment key={index}>
-      {line}
-      <br />
-    </React.Fragment>
-  ))
+  const lines = text.replace(/^\s*\n+/g, '').split('\n')
+  const formattedText = lines.join('<br>')
+
+  return (
+    <Typewriter
+      onInit={(typewriter) => {
+        typewriter.pauseFor(0).changeDelay(10).typeString(formattedText).start()
+      }}
+    />
+  )
 }
