@@ -56,7 +56,7 @@ router.post('/add', async function (req, res) {
     })
 
     const data = {
-      collection_name: 'Resume',
+      collection_name: 'Experiences',
       fields_data: [
         {
           uuid: uuid,
@@ -77,6 +77,7 @@ router.post('/add', async function (req, res) {
     }
 
     res.status(500).json({
+      title: 'Server Error',
       message: 'An error occurred while processing the transaction.',
       error: error.message,
     })
@@ -95,7 +96,7 @@ router.post('/delete', async function (req, res) {
     const docSnapshot = await document.get()
 
     if (!docSnapshot.exists) {
-      res.status(404).json({message: 'Text not found'})
+      res.status(404).json({title: 'Not Found', message: 'Text not found'})
       return
     }
 
@@ -104,13 +105,14 @@ router.post('/delete', async function (req, res) {
 
     // Delete the record in Milvus
     const ret = await milvusClient.deleteEntities({
-      collection_name: 'Resume',
+      collection_name: 'Experiences',
       expr: `uuid in ["${uuid}"]`,
     })
 
     res.status(200).json({message: 'success', ret})
   } catch (error) {
     res.status(500).json({
+      title: 'Server Error',
       message: 'An error occurred while processing the transaction.',
       error: error.message,
     })
@@ -143,10 +145,27 @@ router.post('/query', async function (req, res) {
   const {userid, text} = req.body
 
   if (userid && text) {
+    // Processing code
+    // Search user collection, "Account" docs, credits to see if they have enough credits
+    const userCollection = defaultDatabase.collection(userid)
+    const document = userCollection.doc('Account')
+    const doc = await document.get()
+    const data = doc.data()
+    const credits = data.credits
+    const tier = data.tier
+
+    if (credits < 1 && tier != 'Admin') {
+      res.status(402).json({
+        title: 'Insufficient Credits',
+        message: 'You do not have enough credits to generate a cover letter.',
+      })
+      return
+    }
+
     try {
       // Reload collection
       await milvusClient.loadCollection({
-        collection_name: 'Resume',
+        collection_name: 'Experiences',
       })
 
       // Process the data as needed
@@ -158,7 +177,7 @@ router.post('/query', async function (req, res) {
         params: JSON.stringify({nprobe: 1024}),
       }
       const searchReq = {
-        collection_name: 'Resume',
+        collection_name: 'Experiences',
         vectors: [embedding],
         search_params: searchParams,
         vector_type: DataType.FloatVector,
@@ -189,13 +208,15 @@ router.post('/query', async function (req, res) {
       res.status(200).json({message: 'success', data: messageArray})
     } catch (error) {
       res.status(500).json({
+        title: 'Server Error',
         message: 'An error occurred while processing the request.',
         error: error.message,
       })
     }
   } else {
     res.status(400).json({
-      message: 'Bad request. Please provide both userid and text fields.',
+      title: 'Bad Request',
+      message: 'Please provide both userid and text fields.',
     })
   }
 })
@@ -214,78 +235,43 @@ router.post('/generate', async function (req, res) {
 
     if (credits < 1 && tier != 'Admin') {
       res.status(402).json({
+        title: 'Insufficient Credits',
         message: 'You do not have enough credits to generate a cover letter.',
       })
       return
     }
 
-    if (text && description) {
-      const prompt = `
-      Write a cover letter that matches the job description and utilizes the previous experiences provided.
-      [Start Previous Experiences]
-      ${text}
-      [End Previous Experiences]
-      [Start Job Description]
-      ${description}
-      [End Job Description]`
+    const messages = [
+      {
+        role: 'user',
+        content: `Write a cover letter that matches the job description and utilizes the previous experiences provided. \n
+          [Start Previous Experiences]\n
+          ${text}\n
+          [End Previous Experiences]\n
+          [Start Job Description]\n
+          ${description}\n
+          [End Job Description]`,
+      },
+    ]
 
-      const response = await openai.createCompletion({
-        model: 'text-davinci-003',
-        prompt: prompt,
-        max_tokens: 2000,
-        temperature: 0.8,
-        top_p: 1,
-        frequency_penalty: 0.0,
-      })
-      // const response = await cohere.generate({
-      //   model: 'command-xlarge-nightly',
-      //   prompt: prompt,
-      //   max_tokens: 4090,
-      //   temperature: 0.8,
-      //   k: 0,
-      //   stop_sequences: [],
-      //   return_likelihoods: 'NONE',
-      //   truncate: 'END',
-      // })
-      // const response = await fetch('https://api.cohere.ai/v1/generate', {
-      //   method: 'POST',
-      //   headers: {
-      //     Accept: 'application/json',
-      //     Authorization: `Bearer ${process.env.COHERE_API_KEY}`,
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     model: 'command-xlarge-nightly',
-      //     prompt: prompt,
-      //     max_tokens: 4090,
-      //     temperature: 0.8,
-      //     k: 0,
-      //     stop_sequences: [],
-      //     return_likelihoods: 'NONE',
-      //     truncate: 'START',
-      //   }),
-      // })
+    const response = await openai.createChatCompletion({
+      model: 'gpt-3.5-turbo',
+      messages: messages,
+    })
 
-      // const data = await response.json()
-      // Decrease credits by 1
-      if (tier != 'Admin') {
-        await document.update({
-          credits: credits - 1,
-          tier: tier,
-        })
-      }
-      res
-        .status(200)
-        .json({message: 'success', data: response.data.choices[0].text})
-    } else {
-      res.status(400).json({
-        message:
-          'Bad request. Please provide a JSON string in the "jsonPrompt" field.',
+    // const data = await response.json()
+    // Decrease credits by 1
+    if (tier != 'Admin') {
+      await document.update({
+        credits: credits - 1,
+        tier: tier,
       })
     }
+    res.status(200).json({message: 'success', data: response.data.choices[0]})
   } catch (error) {
     console.log(error)
     res.status(500).json({
+      title: 'Server Error',
       message: 'An error occurred while processing your request.',
       error: error.message,
     })
@@ -296,30 +282,29 @@ router.post('/summarize', async function (req, res) {
   try {
     const {userid, text} = req.body
     if (text && userid) {
-      const prompt = `Summarize the following project in three detailed paragraphs, emphasizing the technical and programming skills used.
-      
-       ${text}`
-      const response = await cohere.generate({
-        model: 'command-xlarge-nightly',
-        prompt: prompt,
-        max_tokens: 2000,
-        temperature: 0.9,
-        k: 0,
-        stop_sequences: [],
-        return_likelihoods: 'NONE',
-        truncate: 'END',
+      const message = [
+        {
+          role: 'user',
+          content: `Summarize the following project in three detailed paragraphs, emphasizing the technical and programming skills used.\n
+          ${text}`,
+        },
+      ]
+      const response = await openai.createChatCompletion({
+        model: 'gpt-3.5-turbo',
+        messages: message,
       })
 
-      res.status(200).json({message: 'success', data: response})
+      res.status(200).json({message: 'success', data: response.data.choices[0]})
     } else {
       res.status(400).json({
-        message:
-          'Bad request. Please provide a JSON string in the "jsonPrompt" field.',
+        title: 'Bad Request',
+        message: 'Please provide a text to summarize',
       })
     }
   } catch (error) {
     console.log(error)
     res.status(500).json({
+      title: 'Server Error',
       message: 'An error occurred while processing your request.',
       error: error.message,
     })
@@ -371,6 +356,43 @@ router.post('/signup', async (req, res) => {
   }
 })
 
+router.delete('/delete-all-collections', async function (req, res) {
+  try {
+    const collections = await defaultDatabase.listCollections()
+    const deletePromises = collections.map((collection) => {
+      return deleteCollection(defaultDatabase, collection.id)
+    })
+
+    await Promise.all(deletePromises)
+    res.status(200).json({message: 'All collections deleted successfully.'})
+  } catch (error) {
+    res.status(500).json({
+      title: 'Server Error',
+      message: 'An error occurred while deleting collections.',
+      error: error.message,
+    })
+  }
+})
+
+async function deleteCollection(database, collectionPath) {
+  const collectionRef = database.collection(collectionPath)
+  const batchSize = 100
+
+  async function deleteBatch() {
+    const snapshot = await collectionRef.limit(batchSize).get()
+
+    // Delete documents in the batch
+    const deletePromises = snapshot.docs.map((doc) => doc.ref.delete())
+    await Promise.all(deletePromises)
+
+    // If the number of deleted documents is equal to the batch size, there might be more documents to delete
+    return snapshot.size === batchSize ? deleteBatch() : null
+  }
+
+  await deleteBatch()
+  await database.recursiveDelete(collectionRef)
+}
+
 module.exports = router
 
 async function fetchEmbedding(text) {
@@ -382,7 +404,6 @@ async function fetchEmbedding(text) {
 
     return response.data.data[0].embedding
   } catch (error) {
-    console.error('Error fetching embedding:', error)
     throw error
   }
 }

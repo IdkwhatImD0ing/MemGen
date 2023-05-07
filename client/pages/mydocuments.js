@@ -1,45 +1,48 @@
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Inter, Montserrat } from "next/font/google";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { useRouter } from "next/router";
-import Modal from "react-modal";
+import {useUser} from '@auth0/nextjs-auth0/client'
+import {Inter, Montserrat, Oi} from 'next/font/google'
+import GenericModal from './components/GenericModal'
+import Link from 'next/link'
+import React, {useEffect, useState} from 'react'
+import axios from 'axios'
+import {useRouter} from 'next/router'
+import Modal from 'react-modal'
 import CircularProgress from '@mui/material/CircularProgress'
 
-const montserrat = Montserrat({ subsets: ["latin"] });
+const montserrat = Montserrat({subsets: ['latin']})
 
-Modal.setAppElement("#__next");
+Modal.setAppElement('#__next')
 
 export default function MyDocuments(props) {
-  const { user } = useUser();
-  const router = useRouter();
+  const {user} = useUser()
+  const router = useRouter()
   const [loading, setLoading] = useState(0)
   const [loadingMessage, setLoadingMessage] = useState('')
-  const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [documentToDelete, setDocumentToDelete] = useState(null);
+  const [modalIsOpen, setModalIsOpen] = useState(false)
+  const [documentToDelete, setDocumentToDelete] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [modalData, setModalData] = useState({})
 
   const openModal = (id) => {
-    setDocumentToDelete(id);
-    setModalIsOpen(true);
-  };
+    setDocumentToDelete(id)
+    setModalIsOpen(true)
+  }
 
   const closeModal = () => {
-    setModalIsOpen(false);
-  };
+    setModalIsOpen(false)
+  }
 
   const confirmDelete = () => {
-    handleDelete(documentToDelete);
-    closeModal();
-  };
+    handleDelete(documentToDelete)
+    closeModal()
+  }
 
   useEffect(() => {
     if (!user) {
-      window.location.href = "/";
+      window.location.href = '/'
     }
-  }, [user]);
+  }, [user])
 
-  const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] = useState([])
 
   const fetchDocuments = () => {
     axios
@@ -49,7 +52,11 @@ export default function MyDocuments(props) {
         },
       })
       .then((res) => {
-        console.log(res)
+        if (res.status > 300) {
+          setModalData(res.data)
+          setShowModal(true)
+          return
+        }
         setDocuments(res.data)
       })
   }
@@ -58,28 +65,25 @@ export default function MyDocuments(props) {
     if (user) {
       fetchDocuments()
     }
-  }, [user])
+  }, [user, fetchDocuments])
 
   const truncateText = (text, limit = 20) => {
-    const words = text.split(" ");
+    const words = text.split(' ')
     if (words.length > limit) {
-      return words.slice(0, limit).join(" ") + "...";
+      return words.slice(0, limit).join(' ') + '...'
     }
-    return text;
-  };
+    return text
+  }
   const handleBoxClick = (id) => {
-    router.push(`/mydocuments?id=${id}`);
-  };
+    router.push(`/mydocuments?id=${id}`)
+  }
 
   const handleDelete = (id) => {
     try {
-      console.log("Here")
       setLoading(1)
-      setLoadingMessage(
-        "Deleting selected document.",
-      )
+      setLoadingMessage('Deleting selected document.')
       axios
-        .post("https://api.art3m1s.me/memgen/delete", {
+        .post('https://api.art3m1s.me/memgen/delete', {
           userid: user.sub,
           uuid: id,
         })
@@ -89,12 +93,12 @@ export default function MyDocuments(props) {
           setLoadingMessage('')
           router.push('/mydocuments')
         })
-  } catch (error) {}
-}
+    } catch (error) {}
+  }
 
   const selectedDocument = documents.find(
-    (document) => document.id === router.query.id
-  );
+    (document) => document.id === router.query.id,
+  )
 
   return (
     <div
@@ -107,12 +111,12 @@ export default function MyDocuments(props) {
             <div
               className="w-1/2 h-1/4 bg-slate-700 p-4 rounded-md overflow-y-scroll"
               style={{
-                maxHeight: "60vh",
+                maxHeight: '60vh',
               }}
             >
               <button
                 onClick={() => {
-                  router.push("/mydocuments");
+                  router.push('/mydocuments')
                 }}
                 className="bg-blue-500 text-white p-2 rounded-md mb-4"
               >
@@ -124,7 +128,9 @@ export default function MyDocuments(props) {
               >
                 Delete
               </button>
-              <p>{selectedDocument.text}</p>
+              <p>
+                <RenderLines text={selectedDocument.text} />
+              </p>
             </div>
           </div>
         ) : documents.length > 0 ? (
@@ -141,21 +147,21 @@ export default function MyDocuments(props) {
           </div>
         ) : (
           <div className="text-2xl">
-            You have no documents,{" "}
+            You have no documents,{' '}
             <Link href="/inputdocuments">
               <span className="text-blue-500 hover:text-blue-300 cursor-pointer">
                 go to upload document
               </span>
-            </Link>{" "}
+            </Link>{' '}
             to upload some!
           </div>
         )}
-                {loading !== 0 && (
-              <div className="absolute top-0 w-screen h-screen bg-black bg-opacity-70 flex flex-col items-center justify-center overflow-y-hidden">
-                <CircularProgress />
-                <p className="mt-4">{loadingMessage}</p>
-              </div>
-      )}
+        {loading !== 0 && (
+          <div className="absolute top-0 w-screen h-screen bg-black bg-opacity-70 flex flex-col items-center justify-center overflow-y-hidden">
+            <CircularProgress />
+            <p className="mt-4">{loadingMessage}</p>
+          </div>
+        )}
       </div>
       <Modal
         isOpen={modalIsOpen}
@@ -180,9 +186,20 @@ export default function MyDocuments(props) {
           </button>
         </div>
       </Modal>
-
+      {showModal && (
+        <GenericModal data={modalData} onClose={() => setShowModal(false)} />
+      )}
     </div>
-    
-  );
-  
+  )
+}
+
+function RenderLines({text}) {
+  // Remove extra new lines at the beginning of the cover letter
+  const trimmedText = text.replace(/^\s*\n+/g, '')
+  return trimmedText.split('\n').map((line, index) => (
+    <React.Fragment key={index}>
+      {line}
+      <br />
+    </React.Fragment>
+  ))
 }
