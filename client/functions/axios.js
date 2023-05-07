@@ -30,7 +30,7 @@ const inputDocument = async (userid, text) => {
     })
     return res
   } catch (error) {
-    console.error('Error in inputDocument:', error)
+    return error.response
   }
 }
 
@@ -42,7 +42,7 @@ const getCoverLetter = async (userid, text) => {
     })
     return response
   } catch (error) {
-    console.error(error)
+    return error.response
   }
 }
 
@@ -55,7 +55,7 @@ const generate = async (userid, description, text) => {
     })
     return response
   } catch (e) {
-    console.log(e)
+    return e.response
   }
 }
 
@@ -68,7 +68,7 @@ const convertPDF = async (file) => {
     })
     return response.data
   } catch (e) {
-    console.log(e)
+    return e.response
   }
 }
 

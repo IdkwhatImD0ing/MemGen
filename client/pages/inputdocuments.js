@@ -1,5 +1,6 @@
 import {useUser} from '@auth0/nextjs-auth0/client'
 import {Inter, Montserrat} from 'next/font/google'
+import GenericModal from './components/GenericModal'
 import {useRouter} from 'next/router'
 import {useEffect, useState} from 'react'
 import {inputDocument, convertPDF} from '@/functions/axios'
@@ -23,6 +24,9 @@ export default function InputDocuments() {
   const [loading, setLoading] = useState(0)
   const [loadingMessage, setLoadingMessage] = useState('')
   const [formData, setFormData] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [modalData, setModalData] = useState({})
+
   const changeHandler = (event) => {
     const file = event.target.files[0] // Get the first file from the file input
     if (file) {
@@ -46,6 +50,12 @@ export default function InputDocuments() {
           "Converting PDF to text, please don't navigate away. This can take up to one minute.",
         )
         text = await convertPDF(formData)
+        if (text.status > 300) {
+          setLoading(0)
+          setModalData(res.data)
+          setShowModal(true)
+          return
+        }
       }
       setLoading(1)
       setLoadingMessage(
@@ -59,13 +69,32 @@ export default function InputDocuments() {
         .then((res) => {
           setLoading(2)
           setLoadingMessage('Embedding summary into vector database.')
-          inputDocument(user.sub, res.data.data.message.content).then((res) => {
-            setLoading(0)
-            setLoadingMessage('')
-            setJobDescription('')
-          })
+          inputDocument(user.sub, res.data.data.message.content)
+            .then((res) => {
+              setLoading(0)
+              setLoadingMessage('')
+              setJobDescription('')
+            })
+            .catch((error) => {
+              if (error.response && error.response.status > 300) {
+                setLoading(0)
+                setModalData(error.response.data)
+                setShowModal(true)
+                return
+              }
+            })
         })
-    } catch (error) {}
+        .catch((error) => {
+          if (error.response && error.response.status > 300) {
+            setLoading(0)
+            setModalData(error.response.data)
+            setShowModal(true)
+            return
+          }
+        })
+    } catch (error) {
+      alert('Critical error, please contact the developer.')
+    }
   }
   if (user) {
     return (
@@ -109,6 +138,12 @@ export default function InputDocuments() {
                 <CircularProgress />
                 <p className="mt-4">{loadingMessage}</p>
               </div>
+            )}
+            {showModal && (
+              <GenericModal
+                data={modalData}
+                onClose={() => setShowModal(false)}
+              />
             )}
           </div>
         </div>

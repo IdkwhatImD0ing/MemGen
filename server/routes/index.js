@@ -77,6 +77,7 @@ router.post('/add', async function (req, res) {
     }
 
     res.status(500).json({
+      title: 'Server Error',
       message: 'An error occurred while processing the transaction.',
       error: error.message,
     })
@@ -95,7 +96,7 @@ router.post('/delete', async function (req, res) {
     const docSnapshot = await document.get()
 
     if (!docSnapshot.exists) {
-      res.status(404).json({message: 'Text not found'})
+      res.status(404).json({title: 'Not Found', message: 'Text not found'})
       return
     }
 
@@ -111,6 +112,7 @@ router.post('/delete', async function (req, res) {
     res.status(200).json({message: 'success', ret})
   } catch (error) {
     res.status(500).json({
+      title: 'Server Error',
       message: 'An error occurred while processing the transaction.',
       error: error.message,
     })
@@ -142,22 +144,24 @@ router.get('/documents', async function (req, res) {
 router.post('/query', async function (req, res) {
   const {userid, text} = req.body
 
-  // Search user collection, "Account" docs, credits to see if they have enough credits
-  const userCollection = defaultDatabase.collection(userid)
-  const document = userCollection.doc('Account')
-  const doc = await document.get()
-  const data = doc.data()
-  const credits = data.credits
-  const tier = data.tier
-
-  if (credits < 1 && tier != 'Admin') {
-    res.status(402).json({
-      message: 'You do not have enough credits to generate a cover letter.',
-    })
-    return
-  }
-
   if (userid && text) {
+    // Processing code
+    // Search user collection, "Account" docs, credits to see if they have enough credits
+    const userCollection = defaultDatabase.collection(userid)
+    const document = userCollection.doc('Account')
+    const doc = await document.get()
+    const data = doc.data()
+    const credits = data.credits
+    const tier = data.tier
+
+    if (credits < 1 && tier != 'Admin') {
+      res.status(402).json({
+        title: 'Insufficient Credits',
+        message: 'You do not have enough credits to generate a cover letter.',
+      })
+      return
+    }
+
     try {
       // Reload collection
       await milvusClient.loadCollection({
@@ -204,13 +208,15 @@ router.post('/query', async function (req, res) {
       res.status(200).json({message: 'success', data: messageArray})
     } catch (error) {
       res.status(500).json({
+        title: 'Server Error',
         message: 'An error occurred while processing the request.',
         error: error.message,
       })
     }
   } else {
     res.status(400).json({
-      message: 'Bad request. Please provide both userid and text fields.',
+      title: 'Bad Request',
+      message: 'Please provide both userid and text fields.',
     })
   }
 })
@@ -229,48 +235,43 @@ router.post('/generate', async function (req, res) {
 
     if (credits < 1 && tier != 'Admin') {
       res.status(402).json({
+        title: 'Insufficient Credits',
         message: 'You do not have enough credits to generate a cover letter.',
       })
       return
     }
 
-    if (text && description) {
-      const messages = [
-        {
-          role: 'user',
-          content: `Write a cover letter that matches the job description and utilizes the previous experiences provided. \n
+    const messages = [
+      {
+        role: 'user',
+        content: `Write a cover letter that matches the job description and utilizes the previous experiences provided. \n
           [Start Previous Experiences]\n
           ${text}\n
           [End Previous Experiences]\n
           [Start Job Description]\n
           ${description}\n
           [End Job Description]`,
-        },
-      ]
+      },
+    ]
 
-      const response = await openai.createChatCompletion({
-        model: 'gpt-3.5-turbo',
-        messages: messages,
-      })
+    const response = await openai.createChatCompletion({
+      model: 'gpt-3.5-turbo',
+      messages: messages,
+    })
 
-      // const data = await response.json()
-      // Decrease credits by 1
-      if (tier != 'Admin') {
-        await document.update({
-          credits: credits - 1,
-          tier: tier,
-        })
-      }
-      res.status(200).json({message: 'success', data: response.data.choices[0]})
-    } else {
-      res.status(400).json({
-        message:
-          'Bad request. Please provide a JSON string in the "jsonPrompt" field.',
+    // const data = await response.json()
+    // Decrease credits by 1
+    if (tier != 'Admin') {
+      await document.update({
+        credits: credits - 1,
+        tier: tier,
       })
     }
+    res.status(200).json({message: 'success', data: response.data.choices[0]})
   } catch (error) {
     console.log(error)
     res.status(500).json({
+      title: 'Server Error',
       message: 'An error occurred while processing your request.',
       error: error.message,
     })
@@ -296,13 +297,14 @@ router.post('/summarize', async function (req, res) {
       res.status(200).json({message: 'success', data: response.data.choices[0]})
     } else {
       res.status(400).json({
-        message:
-          'Bad request. Please provide a JSON string in the "jsonPrompt" field.',
+        title: 'Bad Request',
+        message: 'Please provide a text to summarize',
       })
     }
   } catch (error) {
     console.log(error)
     res.status(500).json({
+      title: 'Server Error',
       message: 'An error occurred while processing your request.',
       error: error.message,
     })
@@ -365,6 +367,7 @@ router.delete('/delete-all-collections', async function (req, res) {
     res.status(200).json({message: 'All collections deleted successfully.'})
   } catch (error) {
     res.status(500).json({
+      title: 'Server Error',
       message: 'An error occurred while deleting collections.',
       error: error.message,
     })

@@ -18,6 +18,8 @@ export default function MyDocuments(props) {
   const [loadingMessage, setLoadingMessage] = useState('')
   const [modalIsOpen, setModalIsOpen] = useState(false)
   const [documentToDelete, setDocumentToDelete] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [modalData, setModalData] = useState({})
 
   const openModal = (id) => {
     setDocumentToDelete(id)
@@ -49,6 +51,11 @@ export default function MyDocuments(props) {
         },
       })
       .then((res) => {
+        if (res.status > 300) {
+          setModalData(res.data)
+          setShowModal(true)
+          return
+        }
         setDocuments(res.data)
       })
   }
@@ -178,6 +185,9 @@ export default function MyDocuments(props) {
           </button>
         </div>
       </Modal>
+      {showModal && (
+        <GenericModal data={modalData} onClose={() => setShowModal(false)} />
+      )}
     </div>
   )
 }
