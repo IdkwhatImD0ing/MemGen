@@ -1,5 +1,6 @@
 import {useUser} from '@auth0/nextjs-auth0/client'
 import {Inter, Montserrat, Oi} from 'next/font/google'
+import GenericModal from './components/GenericModal'
 import Link from 'next/link'
 import React, {useEffect, useState} from 'react'
 import axios from 'axios'
@@ -45,7 +46,7 @@ export default function MyDocuments(props) {
 
   const fetchDocuments = () => {
     axios
-      .get('http://localhost:4004/documents', {
+      .get('https://api.art3m1s.me/memgen/documents', {
         params: {
           userid: user.sub,
         },
@@ -82,7 +83,7 @@ export default function MyDocuments(props) {
       setLoading(1)
       setLoadingMessage('Deleting selected document.')
       axios
-        .post('http://localhost:4004/delete', {
+        .post('https://api.art3m1s.me/memgen/delete', {
           userid: user.sub,
           uuid: id,
         })

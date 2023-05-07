@@ -18,7 +18,7 @@ export default function InputDocuments() {
     if (!user) {
       router.push('/')
     }
-  }, [user])
+  }, [user, router])
   const [jobDescription, setJobDescription] = useState('')
   const [fileName, setFileName] = useState('UploadPDF')
   const [loading, setLoading] = useState(0)
@@ -62,7 +62,7 @@ export default function InputDocuments() {
         "Summarizing your text, please don't navigate away. This can take up to one minute.",
       )
       axios
-        .post('http://localhost:4004/summarize', {
+        .post('https://api.art3m1s.me/memgen/summarize', {
           text: text ? text : jobDescription,
           userid: user.sub,
         })

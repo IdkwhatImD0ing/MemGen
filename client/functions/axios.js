@@ -13,7 +13,7 @@ const localhost = [
   'http://localhost:4004/upload',
 ]
 
-let local = true
+let local = false
 
 let finalurl = []
 if (local) {
