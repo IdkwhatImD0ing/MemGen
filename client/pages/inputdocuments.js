@@ -1,5 +1,6 @@
 import {useUser} from '@auth0/nextjs-auth0/client'
 import {Inter, Montserrat} from 'next/font/google'
+import {useRouter} from 'next/router'
 import {useEffect, useState} from 'react'
 import {inputDocument, convertPDF} from '@/functions/axios'
 import Alert from '@mui/material/Alert'
@@ -9,11 +10,12 @@ import CircularProgress from '@mui/material/CircularProgress'
 const montserrat = Montserrat({subsets: ['latin']})
 
 export default function InputDocuments() {
+  const router = useRouter()
   const {user} = useUser()
 
   useEffect(() => {
     if (!user) {
-      window.location.href = '/'
+      router.push('/')
     }
   }, [user])
   const [jobDescription, setJobDescription] = useState('')
@@ -50,20 +52,18 @@ export default function InputDocuments() {
         "Summarizing your text, please don't navigate away. This can take up to one minute.",
       )
       axios
-        .post('https://api.art3m1s.me/memgen/summarize', {
+        .post('http://localhost:4004/summarize', {
           text: text ? text : jobDescription,
           userid: user.sub,
         })
         .then((res) => {
           setLoading(2)
           setLoadingMessage('Embedding summary into vector database.')
-          inputDocument(user.sub, res.data.data.body.generations[0].text).then(
-            (res) => {
-              setLoading(0)
-              setLoadingMessage('')
-              setJobDescription('')
-            },
-          )
+          inputDocument(user.sub, res.data.data.message.content).then((res) => {
+            setLoading(0)
+            setLoadingMessage('')
+            setJobDescription('')
+          })
         })
     } catch (error) {}
   }

@@ -1,5 +1,6 @@
 import {useUser} from '@auth0/nextjs-auth0/client'
-import {Inter, Montserrat} from 'next/font/google'
+import {Montserrat} from 'next/font/google'
+import {useRouter} from 'next/router'
 import React from 'react'
 import {useEffect, useState} from 'react'
 import {getCoverLetter, generate} from '@/functions/axios'
@@ -9,10 +10,11 @@ const montserrat = Montserrat({subsets: ['latin']})
 
 export default function HomePage() {
   const {user} = useUser()
+  const router = useRouter()
 
   useEffect(() => {
     if (!user) {
-      window.location.href = '/'
+      router.push('/')
     }
   }, [user])
 
@@ -26,16 +28,20 @@ export default function HomePage() {
     setLoading(true)
     const res = await getCoverLetter(user.sub, jobDescription)
     let generateInput = []
-    for (let i = 0; i < res.data.length; i++) {
-      generateInput.push(res.data[i])
-      alert(res.data[i])
+    for (let i = 0; i < res.data.data.length; i++) {
+      generateInput.push(res.data.data[i])
     }
     setLoading(false)
     setLoading2(true)
-    let finalString = generateInput.join(' ')
+    let finalString = ''
+    for (let i = 0; i < generateInput.length; i++) {
+      finalString += 'Start Project ' + (i + 1) + '\n'
+      finalString += generateInput[i]
+      finalString += '\nEnd Project ' + (i + 1) + '\n\n'
+    }
 
-    const generateres = await generate(user.sub, jobDescription, finalString)
-    setCoverletter(generateres.data)
+    const generated = await generate(user.sub, jobDescription, finalString)
+    setCoverletter(generated.data.data.message.content)
     setLoading2(false)
   }
 
